@@ -150,7 +150,7 @@ CREATE TABLE treesense."tree" (
     CONSTRAINT fk_tree_specie FOREIGN KEY (specie) REFERENCES treesense."tree_specie"(tree_specie_id),
     CONSTRAINT fk_tree_state FOREIGN KEY (state) REFERENCES treesense."tree_state"(tree_state_id)
 );
-
+ 
 
 COMMENT ON TABLE treesense."tree" IS 'Table storing scanned trees along different user routes';
 COMMENT ON COLUMN treesense."tree".tree_id IS 'Unique identifier for the tree';
