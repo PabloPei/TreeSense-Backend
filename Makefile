@@ -38,7 +38,7 @@ clean:
 
 # Docker build and run
 docker-build:
-	docker build -t smartspend-backend .
+	docker build -t treesense-backend .
 
 docker-run:
 	docker run --rm -p 8080:8080 --env-file .env smartspend-backend

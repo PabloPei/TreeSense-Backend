@@ -2,7 +2,7 @@
 
 Domain-Driven Design (DDD), the application is divided into domains or bounded contexts, where each domain owns its own layers, including models, repositories, and services.
 
-/SmartSpend
+/treesense
 │── /cmd # Entry point of the application (main.go)
 │── /config # Configuration files (environment variables, etc.)
 │── /internal # Internal backend code (not accessible from other modules)

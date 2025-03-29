@@ -18,7 +18,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: smartspend-backend
+    container_name: treesense-backend
     environment:
       - DB_HOST=db
       - DB_PORT=5432
