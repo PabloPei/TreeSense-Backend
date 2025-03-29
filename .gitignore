@@ -1,0 +1,40 @@
+# Dependencias y configuraciones de módulos
+/vendor/
+
+# Archivos generados por Go
+*.test
+*.out
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Archivos de build de Go
+*.a
+*.o
+*.obj
+
+# Archivos de configuración de GoLand
+.idea/
+
+# Archivos de configuración de VSCode
+.vscode/
+
+# Archivos de configuración de IntelliJ
+.idea/
+
+# Archivos generados por el sistema operativo
+.DS_Store
+Thumbs.db
+
+# Logs y archivos temporales
+*.log
+*.tmp
+
+# Archivos específicos de los entornos de CI/CD
+*.circleci/
+*.travis/
+
+# Variables de ambiente
+.env

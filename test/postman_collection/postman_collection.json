@@ -1,0 +1,61 @@
+{
+	"info": {
+		"_postman_id": "d3b2400d-52a6-4079-9e6c-1aa8cef05397",
+		"name": "Smart Collection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "20742099"
+	},
+	"item": [
+		{
+			"name": "Register New User",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userName\": \"'\",\r\n    \"email\": \"usu//@example.com\",\r\n    \"password\": \"contraseña_segura\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8080/api/v1/register"
+			},
+			"response": []
+		},
+		{
+			"name": "Upload Photo",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"photoUrl\": \"https://test.com\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8080/api/v1/user/photo/usuario@example.com"
+			},
+			"response": []
+		},
+		{
+			"name": "Get user",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:8080/api/v1/user/usuario@example.com"
+			},
+			"response": []
+		}
+	]
+}

@@ -1,0 +1,42 @@
+services:
+  db:
+    image: postgis/postgis:17-3.4
+    container_name: database
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - ./db/migrations/init_schema.sql:/docker-entrypoint-initdb.d/init_schema.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+    restart: always
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smartspend-backend
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=${POSTGRES_USER}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_NAME=${POSTGRES_DB}
+      - PORT=${APISERVER_PORT}
+      - PUBLIC_HOST=0.0.0.0
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+    networks:
+      - app-network
+    restart: always
+
+networks:
+  app-network:
+    driver: bridge
