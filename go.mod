@@ -1,4 +1,4 @@
-module github.com/PabloPei/SmartSpend-backend
+module github.com/PabloPei/TreeSense-Backend
 
 go 1.23.0
 

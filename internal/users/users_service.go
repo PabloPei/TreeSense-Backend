@@ -1,9 +1,9 @@
 package users
 
 import (
-	"github.com/PabloPei/SmartSpend-backend/internal/auth"
-	"github.com/PabloPei/SmartSpend-backend/internal/errors"
-	"github.com/PabloPei/SmartSpend-backend/internal/models"
+	"github.com/PabloPei/TreeSense-Backend/internal/auth"
+	"github.com/PabloPei/TreeSense-Backend/internal/errors"
+	"github.com/PabloPei/TreeSense-Backend/internal/models"
 )
 
 type Service struct {

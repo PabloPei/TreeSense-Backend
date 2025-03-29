@@ -75,7 +75,7 @@ CREATE TABLE auth.user_role (
     CONSTRAINT fk_user_role_role FOREIGN KEY (role_id) REFERENCES auth.role(role_id)
 );
 
-COMMENT ON TABLE auth.user_role IS 'Table for assigning roles to users for specific groups';
+COMMENT ON TABLE auth.user_role IS 'Table for assigning roles to users';
 COMMENT ON COLUMN auth.user_role.user_id IS 'Identifier of the user';
 COMMENT ON COLUMN auth.user_role.role_id IS 'Identifier of the assigned role';
 COMMENT ON COLUMN auth.user_role.valid_until IS 'Date until the assignment is valid';

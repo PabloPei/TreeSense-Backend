@@ -3,9 +3,9 @@ package main
 import (
 	"log"
 
-	"github.com/PabloPei/SmartSpend-backend/conf"
-	"github.com/PabloPei/SmartSpend-backend/db"
-	"github.com/PabloPei/SmartSpend-backend/internal/api"
+	"github.com/PabloPei/TreeSense-Backend/conf"
+	"github.com/PabloPei/TreeSense-Backend/db"
+	"github.com/PabloPei/TreeSense-Backend/internal/api"
 )
 
 func main() {

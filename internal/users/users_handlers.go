@@ -3,10 +3,10 @@ package users
 import (
 	"net/http"
 
-	"github.com/PabloPei/SmartSpend-backend/internal/errors"
-	"github.com/PabloPei/SmartSpend-backend/internal/middlewares"
-	"github.com/PabloPei/SmartSpend-backend/internal/models"
-	"github.com/PabloPei/SmartSpend-backend/utils"
+	"github.com/PabloPei/TreeSense-Backend/internal/errors"
+	"github.com/PabloPei/TreeSense-Backend/internal/middlewares"
+	"github.com/PabloPei/TreeSense-Backend/internal/models"
+	"github.com/PabloPei/TreeSense-Backend/utils"
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 )

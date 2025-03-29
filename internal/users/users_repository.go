@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/PabloPei/SmartSpend-backend/internal/errors"
-	"github.com/PabloPei/SmartSpend-backend/internal/models"
+	"github.com/PabloPei/TreeSense-Backend/internal/errors"
+	"github.com/PabloPei/TreeSense-Backend/internal/models"
 )
 
 // Postgres SQL Repository

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/PabloPei/SmartSpend-backend/conf"
+	"github.com/PabloPei/TreeSense-Backend/conf"
 	_ "github.com/lib/pq"
 )
 

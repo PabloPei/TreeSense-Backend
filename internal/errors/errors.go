@@ -12,7 +12,6 @@ var (
 	ErrJWTTokenExpired    = errors.New("error authenticating user: JWT token expired")
 	ErrUploadPhoto        = errors.New("unable to upload photo")
 	ErrUserNotFound       = errors.New("user not found")
-	ErrGroupNotFound      = errors.New("group not found")
 	ErrPermissionDenied   = func(permission string) error {
 		return fmt.Errorf("user do not have %v permissions", permission)
 	}
@@ -31,7 +30,5 @@ var (
 	ErrUserScan = func(err string) error {
 		return fmt.Errorf("error scaning user: %v", err)
 	}
-	ErrCreateGroup = func(err string) error {
-		return fmt.Errorf("group can´t be created: %v", err)
-	}
+
 )

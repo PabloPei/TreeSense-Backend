@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/PabloPei/SmartSpend-backend/conf"
-	"github.com/PabloPei/SmartSpend-backend/internal/errors"
-	"github.com/PabloPei/SmartSpend-backend/internal/models"
+	"github.com/PabloPei/TreeSense-Backend/conf"
+	"github.com/PabloPei/TreeSense-Backend/internal/errors"
+	"github.com/PabloPei/TreeSense-Backend/internal/models"
 	"github.com/golang-jwt/jwt/v5"
 )
 
