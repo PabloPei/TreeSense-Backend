@@ -12,6 +12,13 @@ var (
 	ErrJWTTokenExpired    = errors.New("error authenticating user: JWT token expired")
 	ErrUploadPhoto        = errors.New("unable to upload photo")
 	ErrUserNotFound       = errors.New("user not found")
+	ErrRoleNotFound       = errors.New("role not found")
+	ErrCantUploadRole    = func(err string) error {
+		return fmt.Errorf("can´t upload role info: %v", err)
+	}
+	ErrCantUploadUser     = func(err string) error {
+		return fmt.Errorf("can´t upload user info: %v", err)
+	}
 	ErrPermissionDenied   = func(permission string) error {
 		return fmt.Errorf("user do not have %v permissions", permission)
 	}
@@ -28,7 +35,15 @@ var (
 		return fmt.Errorf("unexpected signing method: %v", alg)
 	}
 	ErrUserScan = func(err string) error {
-		return fmt.Errorf("error scaning user: %v", err)
+		return fmt.Errorf("error scanning user: %v", err)
 	}
-
+	ErrReadingRole = func(err string) error {
+		return fmt.Errorf("error reading role: %v", err)
+	}
+	ErrRoleScan = func(err string) error {
+		return fmt.Errorf("error scaning role: %v", err)
+	}
+	ErrRoleAlreadyExist = func(role string) error {
+		return fmt.Errorf("role with name %s already exists", role)
+	}
 )

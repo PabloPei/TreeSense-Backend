@@ -43,8 +43,8 @@ COMMENT ON COLUMN auth."user".photo_url IS 'URL of the user''s photo';
 COMMENT ON COLUMN auth."user".language_code IS 'Identifier of the user''s preferred language';
 
 CREATE TABLE auth.role (
-    role_id VARCHAR(1) PRIMARY KEY,
-    role_name VARCHAR(50) NOT NULL,
+    role_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    role_name VARCHAR(50) UNIQUE NOT NULL,
     description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -55,16 +55,18 @@ COMMENT ON COLUMN auth.role.role_id IS 'Unique identifier for the role';
 COMMENT ON COLUMN auth.role.role_name IS 'Name of the role';
 COMMENT ON COLUMN auth.role.description IS 'Description of the role';
 
-INSERT INTO auth.role (role_id, role_name, description)
+INSERT INTO auth.role (role_name, description)
 VALUES
-    ('V', 'VIEWER', 'User with read-only access'),
-    ('E', 'EDITOR', 'User with editing capabilities'),
-    ('A', 'ADMIN', 'User with full administrative privileges');
+    ( 'FIELD AGENT', 'User responsible for collecting and uploading data from the field with limited access to the application'),
+    ( 'VIEWER', 'User with read-only access to view dashboards and reports'),
+    ( 'EDITOR', 'User with the ability to edit content and update records'),
+    ( 'ADMIN', 'User with full administrative privileges, including managing roles and system configurations');
+
 
 
 CREATE TABLE auth.user_role (
     user_id UUID,
-    role_id VARCHAR(1),
+    role_id UUID,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_by UUID,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

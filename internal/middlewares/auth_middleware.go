@@ -6,9 +6,12 @@ import (
 
 	"github.com/PabloPei/TreeSense-Backend/internal/auth"
 	"github.com/PabloPei/TreeSense-Backend/internal/errors"
-	"github.com/PabloPei/TreeSense-Backend/internal/models"
 	"github.com/PabloPei/TreeSense-Backend/utils"
 )
+
+type ContextKey string
+
+var UserKey ContextKey = "userId"
 
 func WithJWTAuth(handlerFunc http.HandlerFunc) http.HandlerFunc {
 
@@ -30,7 +33,7 @@ func WithJWTAuth(handlerFunc http.HandlerFunc) http.HandlerFunc {
 		}
 
 		ctx := r.Context()
-		ctx = context.WithValue(ctx, models.UserKey, userId)
+		ctx = context.WithValue(ctx, UserKey, userId)
 		r = r.WithContext(ctx)
 
 		handlerFunc(w, r)
@@ -57,12 +60,26 @@ func WithRefreshTokenAuth(handlerFunc http.HandlerFunc) http.HandlerFunc {
 		}
 
 		ctx := r.Context()
-		ctx = context.WithValue(ctx, models.UserKey, userId)
+		ctx = context.WithValue(ctx, UserKey, userId)
 		r = r.WithContext(ctx)
 
 		handlerFunc(w, r)
 	}
 }
+
+func GetUserIDFromContext(ctx context.Context) ([]uint8, error) {
+
+	userId, ok := ctx.Value(UserKey).(string)
+
+	userIdUint := []uint8(userId)
+
+	if !ok {
+		return nil, errors.ErrJWTInvalidToken
+	}
+
+	return userIdUint, nil
+}
+
 
 /* TODO middle ware para verificar los permisos
 func RequirePermission(handlerFunc http.HandlerFunc, permission string) http.HandlerFunc {

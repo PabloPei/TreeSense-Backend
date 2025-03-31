@@ -5,17 +5,16 @@ import (
 
 	"github.com/PabloPei/TreeSense-Backend/internal/errors"
 	"github.com/PabloPei/TreeSense-Backend/internal/middlewares"
-	"github.com/PabloPei/TreeSense-Backend/internal/models"
 	"github.com/PabloPei/TreeSense-Backend/utils"
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 )
 
 type Handler struct {
-	service models.UserService
+	service UserService
 }
 
-func NewHandler(service models.UserService) *Handler {
+func NewHandler(service UserService) *Handler {
 	return &Handler{service: service}
 }
 
@@ -26,6 +25,7 @@ func (h *Handler) RegisterRoutes(router *mux.Router) {
 	router.HandleFunc("/user/login", h.handleLogin).Methods("POST")
 	router.HandleFunc("/user/refresh-token", middlewares.WithRefreshTokenAuth(h.handleRefreshToken)).Methods("POST")
 	router.HandleFunc("/user/photo/{email}", middlewares.WithJWTAuth(h.handleUserPhoto)).Methods("POST", "PUT")
+	router.HandleFunc("/user/{email}/role", middlewares.WithJWTAuth(h.handleCreateRoleAssigment)).Methods("POST")
 	//logout se aplica desde el frontend
 
 	// Admin Routes
@@ -34,7 +34,7 @@ func (h *Handler) RegisterRoutes(router *mux.Router) {
 
 func (h *Handler) handleUserRegister(w http.ResponseWriter, r *http.Request) {
 
-	var user models.RegisterUserPayload
+	var user RegisterUserPayload
 	if err := utils.ParseJSON(r, &user); err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -59,7 +59,7 @@ func (h *Handler) handleUserRegister(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 
-	var user models.LogInUserPayload
+	var user LogInUserPayload
 
 	if err := utils.ParseJSON(r, &user); err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
@@ -84,9 +84,10 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, map[string]string{"accessToken": token, "refreshToken": refreshToken})
 }
 
+// TODO Arreglar esta ruta 
 func (h *Handler) handleRefreshToken(w http.ResponseWriter, r *http.Request) {
 
-	userId := r.Context().Value(models.UserKey).([]uint8)
+	userId, err := middlewares.GetUserIDFromContext(r.Context())
 
 	newAccessToken, err := h.service.RefreshToken(userId)
 	if err != nil {
@@ -126,7 +127,7 @@ func (h *Handler) handleUserPhoto(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var payload models.UploadPhotoPayload
+	var payload UploadPhotoPayload
 	if err := utils.ParseJSON(r, &payload); err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -146,5 +147,47 @@ func (h *Handler) handleUserPhoto(w http.ResponseWriter, r *http.Request) {
 
 	utils.WriteJSON(w, http.StatusOK, map[string]string{
 		"message": "Photo uploaded successfully",
+	})
+}
+
+
+//TODO verificar que no exista el rol assigment ya, para eso crear roles by user etc
+func (h *Handler) handleCreateRoleAssigment(w http.ResponseWriter, r *http.Request) {
+
+	var roleAssigment CreateUserRoleAssigmentPayload
+	if err := utils.ParseJSON(r, &roleAssigment); err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	if err := utils.Validate.Struct(roleAssigment); err != nil {
+		validationErrors := err.(validator.ValidationErrors)
+		utils.WriteError(w, http.StatusBadRequest, errors.ErrInvalidaPayload(validationErrors.Error()))
+		return
+	}
+
+	userId, err := middlewares.GetUserIDFromContext(r.Context())
+
+	if err != nil {
+		utils.WriteError(w, http.StatusUnauthorized, errors.ErrJWTInvalidToken)
+		return
+	}
+
+	vars := mux.Vars(r)
+	email, ok := vars["email"]
+	if !ok {
+		utils.WriteError(w, http.StatusBadRequest, errors.ErrUserNotFound)
+		return
+	}
+
+	
+	err = h.service.CreateRoleAssigment(roleAssigment, email, userId)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusCreated, map[string]string{
+		"message": "Role successfully assigned",
 	})
 }

@@ -16,7 +16,7 @@ func NewSQLRepository(db *sql.DB) *SQLRepository {
 }
 
 /* Estafuncion va a ser la que cree una entrada en user role, donde se asigna un rol al usuario sobre un grupo
-func (s *SQLRepository) CreateRoleAssigment(user models.User) error {
+func (s *SQLRepository) CreateRoleAssigment(user User) error {
 	_, err := s.db.Exec(
 		"INSERT INTO auth.\"user\" (user_name, email, password) VALUES ($1, $2, $3)",
 		user.UserName, user.Email, user.Password,

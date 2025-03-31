@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/PabloPei/TreeSense-Backend/conf"
 	"github.com/PabloPei/TreeSense-Backend/db"
@@ -10,8 +11,10 @@ import (
 
 func main() {
 
-	// PSQL Connection //
+	log.SetOutput(os.Stdout)
 
+	// PSQL Connection //
+		
 	log.Println("Starting PostgreSQL connection...")
 
 	db, err := db.NewPostgresStorage(conf.DatabaseConfig)

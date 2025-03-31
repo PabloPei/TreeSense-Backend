@@ -2,10 +2,9 @@ package users
 
 import (
 	"database/sql"
-	"fmt"
+	"time"
 
 	"github.com/PabloPei/TreeSense-Backend/internal/errors"
-	"github.com/PabloPei/TreeSense-Backend/internal/models"
 )
 
 // Postgres SQL Repository
@@ -17,13 +16,13 @@ func NewSQLRepository(db *sql.DB) *SQLRepository {
 	return &SQLRepository{db: db}
 }
 
-func (s *SQLRepository) CreateUser(user models.User) error {
+func (s *SQLRepository) CreateUser(user User) error {
 	_, err := s.db.Exec(
 		"INSERT INTO auth.\"user\" (user_name, email, password) VALUES ($1, $2, $3)",
 		user.UserName, user.Email, user.Password,
 	)
 	if err != nil {
-		return fmt.Errorf("error al crear usuario: %w", err)
+		return errors.ErrCantUploadUser(err.Error())
 	}
 
 	return nil
@@ -37,25 +36,37 @@ func (s *SQLRepository) UploadPhoto(photoUrl string, email string) error {
 	)
 
 	if err != nil {
-		return fmt.Errorf("error al actualizar la foto: %w", err)
+		return errors.ErrCantUploadUser(err.Error())
 	}
 
 	return nil
 }
 
-func (s *SQLRepository) GetUserByEmail(email string) (*models.User, error) {
+func (s *SQLRepository) CreateRoleAssigment(userId []uint8, roleId []uint8, by []uint8, valid_until time.Time) error {
+	_, err := s.db.Exec(
+		"INSERT INTO auth.\"user_role\" (user_id, role_id, created_by, updated_by, valid_until) VALUES ($1, $2, $3, $3, $4)",
+		userId, roleId, by, valid_until,
+	)
+	if err != nil {
+		return errors.ErrCantUploadRole(err.Error())
+	}
+
+	return nil
+}
+
+func (s *SQLRepository) GetUserByEmail(email string) (*User, error) {
 	row := s.db.QueryRow("SELECT * FROM auth.\"user\" WHERE email = $1", email)
 	return scanRowIntoUser(row)
 }
 
-func (s *SQLRepository) GetUserById(id []uint8) (*models.User, error) {
+func (s *SQLRepository) GetUserById(id []uint8) (*User, error) {
 	row := s.db.QueryRow("SELECT * FROM auth.\"user\" WHERE user_id = $1", id)
 	return scanRowIntoUser(row)
 }
 
-func scanRowIntoUser(row *sql.Row) (*models.User, error) {
+func scanRowIntoUser(row *sql.Row) (*User, error) {
 
-	user := new(models.User)
+	user := new(User)
 	err := row.Scan(
 		&user.UserId,
 		&user.UserName,

@@ -7,12 +7,11 @@ Domain-Driven Design (DDD), the application is divided into domains or bounded c
 │── /config # Configuration files (environment variables, etc.)
 │── /internal # Internal backend code (not accessible from other modules)
 │ │── /domain # domain 
+│ │   |── /domain.go # Models and interfaces for the domain
 │ │   |── /domain_service.go # Business logic
 │ │   │── /domain_repository.go # Database access
 │ │   │── /domain_handlers.go # HTTP controllers (handle requests)
-│ │   │── /domain_test.go # Unit test for the domain
-│ │── /models # domain 
-│ │   │── /domain.go # Models and interfaces for the domain
+│ │   │── /domain_test.go # Unit test for the domain 
 │ │── /middlewares # Middlewares (authentication, logging, etc.)
 │── /pkg # Reusable code (can be used by other projects)
 │── /db # Configuration, access and migrations for DB

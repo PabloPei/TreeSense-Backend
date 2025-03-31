@@ -3,18 +3,19 @@ package users
 import (
 	"github.com/PabloPei/TreeSense-Backend/internal/auth"
 	"github.com/PabloPei/TreeSense-Backend/internal/errors"
-	"github.com/PabloPei/TreeSense-Backend/internal/models"
+	"github.com/PabloPei/TreeSense-Backend/internal/roles"
 )
 
 type Service struct {
-	repository models.UserRepository
+	repository UserRepository
+	roleRepository roles.RoleRepository
 }
 
-func NewService(repository models.UserRepository) *Service {
-	return &Service{repository: repository}
+func NewService(repository UserRepository, roleRepository roles.RoleRepository) *Service {
+	return &Service{repository: repository, roleRepository: roleRepository}
 }
 
-func (s *Service) RegisterUser(payload models.RegisterUserPayload) error {
+func (s *Service) RegisterUser(payload RegisterUserPayload) error {
 
 	_, err := s.repository.GetUserByEmail(payload.Email)
 	if err == nil {
@@ -26,7 +27,7 @@ func (s *Service) RegisterUser(payload models.RegisterUserPayload) error {
 		return errors.ErrHashingPassword(err)
 	}
 
-	user := models.User{
+	user := User{
 		UserName: payload.UserName,
 		Email:    payload.Email,
 		Password: hashedPassword,
@@ -35,7 +36,7 @@ func (s *Service) RegisterUser(payload models.RegisterUserPayload) error {
 	return s.repository.CreateUser(user)
 }
 
-func (s *Service) LogInUser(user models.LogInUserPayload) (string, string, error) {
+func (s *Service) LogInUser(user LogInUserPayload) (string, string, error) {
 
 	u, err := s.repository.GetUserByEmail(user.Email)
 
@@ -62,14 +63,14 @@ func (s *Service) LogInUser(user models.LogInUserPayload) (string, string, error
 	return token, refreshToken, nil
 }
 
-func (s *Service) GetUserPublicByEmail(email string) (*models.UserPublicPayload, error) {
+func (s *Service) GetUserPublicByEmail(email string) (*UserPublicPayload, error) {
 
 	u, err := s.repository.GetUserByEmail(email)
 	if err != nil {
 		return nil, err
 	}
 
-	return &models.UserPublicPayload{
+	return &UserPublicPayload{
 		UserId:   u.UserId,
 		Email:    u.Email,
 		UserName: u.UserName,
@@ -95,7 +96,7 @@ func (s *Service) RefreshToken(userId []uint8) (string, error) {
 	return accessToken, nil
 }
 
-func (s *Service) UploadPhoto(payload models.UploadPhotoPayload, email string) error {
+func (s *Service) UploadPhoto(payload UploadPhotoPayload, email string) error {
 
 	_, err := s.repository.GetUserByEmail(email)
 	if err != nil {
@@ -105,9 +106,27 @@ func (s *Service) UploadPhoto(payload models.UploadPhotoPayload, email string) e
 	return s.repository.UploadPhoto(payload.PhotoUrl, email)
 }
 
+//TODO cambiar a role service envez de repository
+func (s *Service) CreateRoleAssigment(payload CreateUserRoleAssigmentPayload, email string, by []uint8) error {
+
+	role, err := s.roleRepository.GetRoleByName(payload.RoleName)
+
+	if err != nil {
+		return errors.ErrRoleNotFound
+	}
+
+	user, err := s.repository.GetUserByEmail(email)
+	if err != nil {
+		return errors.ErrUserNotFound
+	}
+
+
+	return s.repository.CreateRoleAssigment(user.UserId, role.RoleId, by, payload.ValidUntil)
+}
+
 // Aux Functions
 
-func createJWTPayload(user models.User) auth.UserJWT {
+func createJWTPayload(user User) auth.UserJWT {
 
 	var userJWT auth.UserJWT
 
