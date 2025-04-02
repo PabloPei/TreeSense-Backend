@@ -2,7 +2,6 @@ package users
 
 import (
 	"database/sql"
-	"time"
 
 	"github.com/PabloPei/TreeSense-Backend/internal/errors"
 )
@@ -37,18 +36,6 @@ func (s *SQLRepository) UploadPhoto(photoUrl string, email string) error {
 
 	if err != nil {
 		return errors.ErrCantUploadUser(err.Error())
-	}
-
-	return nil
-}
-
-func (s *SQLRepository) CreateRoleAssigment(userId []uint8, roleId []uint8, by []uint8, valid_until time.Time) error {
-	_, err := s.db.Exec(
-		"INSERT INTO auth.\"user_role\" (user_id, role_id, created_by, updated_by, valid_until) VALUES ($1, $2, $3, $3, $4)",
-		userId, roleId, by, valid_until,
-	)
-	if err != nil {
-		return errors.ErrCantUploadRole(err.Error())
 	}
 
 	return nil

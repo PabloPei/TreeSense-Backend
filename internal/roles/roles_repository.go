@@ -3,6 +3,7 @@ package roles
 import (
 	"database/sql"
     "log"
+	"time"
 
 	"github.com/PabloPei/TreeSense-Backend/internal/errors"
 )
@@ -11,6 +12,11 @@ import (
 type SQLRepository struct {
 	db *sql.DB
 }
+
+type scannable interface {
+	Scan(dest ...interface{}) error
+}
+
 
 func NewSQLRepository(db *sql.DB) *SQLRepository {
 	return &SQLRepository{db: db}
@@ -38,7 +44,20 @@ func (s *SQLRepository) GetRoles() ([]Role, error) {
 
 	defer rows.Close()
 
-	roles, err := scanRowsIntoRoles(rows)
+	var roles []Role
+
+	for rows.Next() {
+		role, err := scanRowIntoRole(rows)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return nil, errors.ErrRoleNotFound
+			}
+			return nil, errors.ErrRoleScan(err.Error())
+		}
+		roles = append(roles, *role)
+
+	}
+
 	if err != nil {
 		return nil, errors.ErrRoleScan(err.Error())
 	}
@@ -60,37 +79,19 @@ func (s *SQLRepository) GetRoleByName(roleName string) (*Role, error) {
 	return role, nil
 }
 
-//TODO ver como no repetir codigo aca (interfaz?)
-func scanRowsIntoRoles(rows *sql.Rows) ([]Role, error) {
-
-	var roles []Role
-
-	for rows.Next() {
-		role := new(Role)
-		err := rows.Scan(
-			&role.RoleId,
-			&role.RoleName,
-			&role.RoleDescription,
-			&role.CreatedAt,
-			&role.UpdatedAt,
-		)
-
-		if err != nil {
-			if err == sql.ErrNoRows {
-				return nil, errors.ErrRoleNotFound
-			}
-			return nil, errors.ErrRoleScan(err.Error())
-		}
-		roles = append(roles, *role)
+func (s *SQLRepository) CreateRoleAssigment(userId []uint8, roleId []uint8, by []uint8, valid_until time.Time) error {
+	_, err := s.db.Exec(
+		"INSERT INTO auth.\"user_role\" (user_id, role_id, created_by, updated_by, valid_until) VALUES ($1, $2, $3, $3, $4)",
+		userId, roleId, by, valid_until,
+	)
+	if err != nil {
+		return errors.ErrCantUploadRole(err.Error())
 	}
 
-	if err := rows.Err(); err != nil {
-		return nil, errors.ErrRoleScan(err.Error())
-	}
-
-	return roles, nil
+	return nil
 }
-func scanRowIntoRole(row *sql.Row) (*Role, error) {
+
+func scanRowIntoRole(row scannable) (*Role, error) {
 
 	role := new(Role)
 	err := row.Scan(
@@ -109,47 +110,3 @@ func scanRowIntoRole(row *sql.Row) (*Role, error) {
 	}
 	return role, nil
 }
-
-
-/*
-func (s *SQLRepository) CreateRoleAssigment(user User) error {
-	_, err := s.db.Exec(
-		"INSERT INTO auth.\"role\" (user_name, email, password) VALUES ($1, $2, $3)",
-		user.UserName, user.Email, user.Password,
-	)
-	if err != nil {
-		return fmt.Errorf("error al crear usuario: %w", err)
-	}
-
-	return nil
-}
-
-
-func (s *SQLRepository) GetUserById(id []uint8) (*User, error) {
-	row := s.db.QueryRow("SELECT * FROM auth.\"user\" WHERE user_id = $1", id)
-	return scanRowIntoUser(row)
-}
-
-func scanRowIntoUser(row *sql.Row) (*User, error) {
-
-	user := new(User)
-	err := row.Scan(
-		&user.UserId,
-		&user.UserName,
-		&user.Email,
-		&user.Password,
-		&user.PhotoUrl,
-		&user.LanguageCode,
-		&user.CreatedAt,
-		&user.UpdatedAt,
-	)
-
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, errors.ErrUserNotFound
-		}
-		return nil, errors.ErrUserScan(err.Error())
-	}
-	return user, nil
-}
-*/

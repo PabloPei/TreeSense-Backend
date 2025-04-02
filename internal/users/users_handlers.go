@@ -25,7 +25,6 @@ func (h *Handler) RegisterRoutes(router *mux.Router) {
 	router.HandleFunc("/user/login", h.handleLogin).Methods("POST")
 	router.HandleFunc("/user/refresh-token", middlewares.WithRefreshTokenAuth(h.handleRefreshToken)).Methods("POST")
 	router.HandleFunc("/user/photo/{email}", middlewares.WithJWTAuth(h.handleUserPhoto)).Methods("POST", "PUT")
-	router.HandleFunc("/user/{email}/role", middlewares.WithJWTAuth(h.handleCreateRoleAssigment)).Methods("POST")
 	//logout se aplica desde el frontend
 
 	// Admin Routes
@@ -89,7 +88,9 @@ func (h *Handler) handleRefreshToken(w http.ResponseWriter, r *http.Request) {
 
 	userId, err := middlewares.GetUserIDFromContext(r.Context())
 
+
 	newAccessToken, err := h.service.RefreshToken(userId)
+
 	if err != nil {
 		utils.WriteError(w, http.StatusUnauthorized, err)
 		return
@@ -147,47 +148,5 @@ func (h *Handler) handleUserPhoto(w http.ResponseWriter, r *http.Request) {
 
 	utils.WriteJSON(w, http.StatusOK, map[string]string{
 		"message": "Photo uploaded successfully",
-	})
-}
-
-
-//TODO verificar que no exista el rol assigment ya, para eso crear roles by user etc
-func (h *Handler) handleCreateRoleAssigment(w http.ResponseWriter, r *http.Request) {
-
-	var roleAssigment CreateUserRoleAssigmentPayload
-	if err := utils.ParseJSON(r, &roleAssigment); err != nil {
-		utils.WriteError(w, http.StatusBadRequest, err)
-		return
-	}
-
-	if err := utils.Validate.Struct(roleAssigment); err != nil {
-		validationErrors := err.(validator.ValidationErrors)
-		utils.WriteError(w, http.StatusBadRequest, errors.ErrInvalidaPayload(validationErrors.Error()))
-		return
-	}
-
-	userId, err := middlewares.GetUserIDFromContext(r.Context())
-
-	if err != nil {
-		utils.WriteError(w, http.StatusUnauthorized, errors.ErrJWTInvalidToken)
-		return
-	}
-
-	vars := mux.Vars(r)
-	email, ok := vars["email"]
-	if !ok {
-		utils.WriteError(w, http.StatusBadRequest, errors.ErrUserNotFound)
-		return
-	}
-
-	
-	err = h.service.CreateRoleAssigment(roleAssigment, email, userId)
-	if err != nil {
-		utils.WriteError(w, http.StatusBadRequest, err)
-		return
-	}
-
-	utils.WriteJSON(w, http.StatusCreated, map[string]string{
-		"message": "Role successfully assigned",
 	})
 }

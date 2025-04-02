@@ -40,7 +40,7 @@ func WithJWTAuth(handlerFunc http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-// TODO agregar validacion del access token que este vencido pero pertenezca al usuario
+// TODO Ver si implementar como randomstring almacenado en la base, permite hacer logout
 func WithRefreshTokenAuth(handlerFunc http.HandlerFunc) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {

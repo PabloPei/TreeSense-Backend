@@ -22,6 +22,7 @@ func (h *Handler) RegisterRoutes(router *mux.Router) {
 
 	router.HandleFunc("/role", middlewares.WithJWTAuth(h.handleCreateRole)).Methods("POST")
 	router.HandleFunc("/role", middlewares.WithJWTAuth(h.handleGetRole)).Methods("GET")
+	router.HandleFunc("/role/{email}/assign", middlewares.WithJWTAuth(h.handleCreateRoleAssigment)).Methods("POST")
 
 }
 
@@ -59,4 +60,46 @@ func (h *Handler) handleGetRole(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.WriteJSON(w, http.StatusCreated, roles)
+}
+
+
+//TODO verificar que no exista el rol assigment ya, para eso crear roles by user etc
+func (h *Handler) handleCreateRoleAssigment(w http.ResponseWriter, r *http.Request) {
+
+	var roleAssigment CreateUserRoleAssigmentPayload
+	if err := utils.ParseJSON(r, &roleAssigment); err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	if err := utils.Validate.Struct(roleAssigment); err != nil {
+		validationErrors := err.(validator.ValidationErrors)
+		utils.WriteError(w, http.StatusBadRequest, errors.ErrInvalidaPayload(validationErrors.Error()))
+		return
+	}
+
+	userId, err := middlewares.GetUserIDFromContext(r.Context())
+
+	if err != nil {
+		utils.WriteError(w, http.StatusUnauthorized, errors.ErrJWTInvalidToken)
+		return
+	}
+
+	vars := mux.Vars(r)
+	email, ok := vars["email"]
+	if !ok {
+		utils.WriteError(w, http.StatusBadRequest, errors.ErrUserNotFound)
+		return
+	}
+
+	
+	err = h.service.CreateRoleAssigment(roleAssigment, email, userId)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusCreated, map[string]string{
+		"message": "Role successfully assigned",
+	})
 }

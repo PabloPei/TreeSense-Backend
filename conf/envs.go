@@ -52,7 +52,7 @@ func InitApiServerConfig() ApiServerConfig {
 		Port:                          getEnv("PORT", "8080"),
 		JWTSecret:                     getEnv("JWT_SECRET", "not-so-secret-now-is-it?"),
 		JWTExpirationInSeconds:        getEnvAsInt("JWT_EXPIRATION_IN_SECONDS", 3600*1),
-		RefreshTokenSecret:            getEnv("REFRESH_TOKEN_SECRET", "not-so-secret-now-is-it?"),
+		RefreshTokenSecret:            getEnv("REFRESH_TOKEN_SECRET", "not-so-longsecret-now-is-it?"),
 		RefreshTokenExpirationInHours: getEnvAsInt("REFRESH_TOKEN_EXPIRATION_IN_HOURS", 30*24),
 	}
 }

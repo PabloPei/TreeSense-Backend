@@ -31,7 +31,6 @@ func ParseJSON(r *http.Request, v any) error {
 
 func GetTokenFromRequest(r *http.Request) string {
 	tokenAuth := r.Header.Get("Authorization")
-
 	if tokenAuth != "" {
 		if strings.HasPrefix(tokenAuth, "Bearer ") {
 			return strings.TrimPrefix(tokenAuth, "Bearer ")

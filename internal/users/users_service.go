@@ -3,16 +3,14 @@ package users
 import (
 	"github.com/PabloPei/TreeSense-Backend/internal/auth"
 	"github.com/PabloPei/TreeSense-Backend/internal/errors"
-	"github.com/PabloPei/TreeSense-Backend/internal/roles"
 )
 
 type Service struct {
 	repository UserRepository
-	roleRepository roles.RoleRepository
 }
 
-func NewService(repository UserRepository, roleRepository roles.RoleRepository) *Service {
-	return &Service{repository: repository, roleRepository: roleRepository}
+func NewService(repository UserRepository) *Service {
+	return &Service{repository: repository}
 }
 
 func (s *Service) RegisterUser(payload RegisterUserPayload) error {
@@ -104,24 +102,6 @@ func (s *Service) UploadPhoto(payload UploadPhotoPayload, email string) error {
 	}
 
 	return s.repository.UploadPhoto(payload.PhotoUrl, email)
-}
-
-//TODO cambiar a role service envez de repository
-func (s *Service) CreateRoleAssigment(payload CreateUserRoleAssigmentPayload, email string, by []uint8) error {
-
-	role, err := s.roleRepository.GetRoleByName(payload.RoleName)
-
-	if err != nil {
-		return errors.ErrRoleNotFound
-	}
-
-	user, err := s.repository.GetUserByEmail(email)
-	if err != nil {
-		return errors.ErrUserNotFound
-	}
-
-
-	return s.repository.CreateRoleAssigment(user.UserId, role.RoleId, by, payload.ValidUntil)
 }
 
 // Aux Functions

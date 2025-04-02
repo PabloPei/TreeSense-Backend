@@ -20,7 +20,6 @@ type UserRepository interface {
 	CreateUser(User) error
 	UploadPhoto(photoUrl string, email string) error
 	GetUserById(id []uint8) (*User, error)
-	CreateRoleAssigment(userId []uint8, roleId []uint8, by []uint8, valid_until time.Time) error
 }
 
 type UserService interface {
@@ -29,7 +28,6 @@ type UserService interface {
 	GetUserPublicByEmail(email string) (*UserPublicPayload, error)
 	RefreshToken(userId []uint8) (string, error)
 	UploadPhoto(payload UploadPhotoPayload, email string) error
-	CreateRoleAssigment(payload CreateUserRoleAssigmentPayload, email string, by []uint8) error
 }
 
 type RegisterUserPayload struct {
@@ -52,9 +50,4 @@ type UserPublicPayload struct {
 	UserName string  `json:"userName" validate:"required"`
 	Email    string  `json:"email" validate:"required,email"`
 	UserId   []uint8 `json:"userId"`
-}
-
-type CreateUserRoleAssigmentPayload struct {
-	RoleName           string `json:"roleName" validate:"required"`
-	ValidUntil         time.Time `json:"validUntil" validate:"required"`
 }

@@ -35,19 +35,17 @@ func (s *APIServer) Run() error {
 
 	subrouter := router.PathPrefix("/api/v1").Subrouter()
 
-	// role routes
-	roleRepository := roles.NewSQLRepository(s.db)
-	roleService := roles.NewService(roleRepository)
-	roleHandler := roles.NewHandler(roleService)
-	roleHandler.RegisterRoutes(subrouter)
-
 	// user routes
 	userRepository := users.NewSQLRepository(s.db)
-	userService := users.NewService(userRepository, roleRepository)
+	userService := users.NewService(userRepository)
 	userHandler := users.NewHandler(userService)
 	userHandler.RegisterRoutes(subrouter)
 
-	
+	// role routes
+	roleRepository := roles.NewSQLRepository(s.db)
+	roleService := roles.NewService(roleRepository, userRepository)
+	roleHandler := roles.NewHandler(roleService)
+	roleHandler.RegisterRoutes(subrouter)
 
 	log.Println("Server running on", s.addr)
 	return http.ListenAndServe(s.addr, router)

@@ -16,14 +16,22 @@ type RoleRepository interface {
 	CreateRole(Role) error
 	GetRoles() ([]Role, error) 
 	GetRoleByName(roleName string) (*Role, error)
+	CreateRoleAssigment(userId []uint8, roleId []uint8, by []uint8, valid_until time.Time) error
+
 }
 
 type RoleService interface {
 	CreateRole(payload CreateRolePayload) error
 	GetRoles() ([]Role, error) 
+	CreateRoleAssigment(payload CreateUserRoleAssigmentPayload, email string, by []uint8) error
 }
 
 type CreateRolePayload struct {
 	RoleName           string `json:"roleName" validate:"required"`
 	RoleDescription    string `json:"roleDescription" validate:"required"`
+}
+
+type CreateUserRoleAssigmentPayload struct {
+	RoleName           string `json:"roleName" validate:"required"`
+	ValidUntil         time.Time `json:"validUntil" validate:"required"`
 }
