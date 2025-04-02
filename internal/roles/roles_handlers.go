@@ -18,11 +18,13 @@ func NewHandler(service RoleService) *Handler {
 	return &Handler{service: service}
 }
 
-func (h *Handler) RegisterRoutes(router *mux.Router) {
+func (h *Handler) RegisterRoutes(router *mux.Router, middleware *middlewares.Middleware) {
 
-	router.HandleFunc("/role", middlewares.WithJWTAuth(h.handleCreateRole)).Methods("POST")
-	router.HandleFunc("/role", middlewares.WithJWTAuth(h.handleGetRole)).Methods("GET")
-	router.HandleFunc("/role/{email}/assign", middlewares.WithJWTAuth(h.handleCreateRoleAssigment)).Methods("POST")
+	router.HandleFunc("/role", middleware.WithAuthAndPerm("ADMIN", h.handleCreateRole)).Methods("POST")
+	router.HandleFunc("/role", middleware.WithAuthAndPerm("",h.handleGetRole)).Methods("GET")
+	router.HandleFunc("/role/all", middleware.WithAuthAndPerm("ADMIN", h.handleGetAllRole)).Methods("GET")
+	router.HandleFunc("/role/{email}/assign", middleware.WithAuthAndPerm("ADMIN",h.handleCreateRoleAssigment)).Methods("POST")
+	router.HandleFunc("/role/{email}", middleware.WithAuthAndPerm("ADMIN",h.handleGetUserRole)).Methods("GET")
 
 }
 
@@ -51,9 +53,41 @@ func (h *Handler) handleCreateRole(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *Handler) handleGetRole(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) handleGetAllRole(w http.ResponseWriter, r *http.Request) {
 
 	roles, err := h.service.GetRoles()
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusCreated, roles)
+}
+
+func (h *Handler) handleGetRole(w http.ResponseWriter, r *http.Request) {
+
+	userId, err := middlewares.GetUserIDFromContext(r.Context())
+
+	roles, err := h.service.GetCurrentUserRoles(userId)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusCreated, roles)
+}
+
+func (h *Handler) handleGetUserRole(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	email, ok := vars["email"]
+
+	if !ok {
+		utils.WriteError(w, http.StatusBadRequest, errors.ErrUserNotFound)
+		return
+	}
+
+	roles, err := h.service.GetUserRoles(email)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return

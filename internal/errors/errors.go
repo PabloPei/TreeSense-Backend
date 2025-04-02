@@ -11,6 +11,7 @@ var (
 	ErrJWTInvalidToken    = errors.New("error authenticating user: Token not valid")
 	ErrJWTTokenExpired    = errors.New("error authenticating user: JWT token expired")
 	ErrUploadPhoto        = errors.New("unable to upload photo")
+	ErrRoleAssigmentExist = errors.New("role assigment already exist")
 	ErrUserNotFound       = errors.New("user not found")
 	ErrRoleNotFound       = errors.New("role not found")
 	ErrCantUploadRole    = func(err string) error {
@@ -42,6 +43,9 @@ var (
 	}
 	ErrRoleScan = func(err string) error {
 		return fmt.Errorf("error scaning role: %v", err)
+	}
+	ErrUserNotHaveRole = func(rol string) error {
+		return fmt.Errorf("error user does not have role %s", rol)
 	}
 	ErrRoleAlreadyExist = func(role string) error {
 		return fmt.Errorf("role with name %s already exists", role)

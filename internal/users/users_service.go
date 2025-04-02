@@ -75,6 +75,17 @@ func (s *Service) GetUserPublicByEmail(email string) (*UserPublicPayload, error)
 	}, nil
 }
 
+func (s *Service) UserExist(userId []uint8) (bool, error) {
+
+	_, err := s.repository.GetUserById(userId)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+
+}
+
 func (s *Service) RefreshToken(userId []uint8) (string, error) {
 
 	user, err := s.repository.GetUserById(userId)

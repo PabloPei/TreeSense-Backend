@@ -29,23 +29,30 @@ func (s *APIServer) Run() error {
 
 	router := mux.NewRouter()
 
-	// global middlewares
+	// Global middlewares
 	router.Use(middlewares.LoggingMiddleware)
 	router.Use(middlewares.RecoveryMiddleware)
-
 	subrouter := router.PathPrefix("/api/v1").Subrouter()
 
-	// user routes
+	// Repositories
 	userRepository := users.NewSQLRepository(s.db)
-	userService := users.NewService(userRepository)
-	userHandler := users.NewHandler(userService)
-	userHandler.RegisterRoutes(subrouter)
-
-	// role routes
 	roleRepository := roles.NewSQLRepository(s.db)
+
+
+	// Servicies
+	userService := users.NewService(userRepository)
 	roleService := roles.NewService(roleRepository, userRepository)
+
+
+	// Local Middlewares
+	authMiddleware := middlewares.NewAuthMiddleware(roleService, userService)
+
+	// Routes
+	userHandler := users.NewHandler(userService)
+	userHandler.RegisterRoutes(subrouter, authMiddleware)
 	roleHandler := roles.NewHandler(roleService)
-	roleHandler.RegisterRoutes(subrouter)
+	roleHandler.RegisterRoutes(subrouter, authMiddleware)
+
 
 	log.Println("Server running on", s.addr)
 	return http.ListenAndServe(s.addr, router)

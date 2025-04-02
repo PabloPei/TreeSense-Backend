@@ -37,7 +37,6 @@ func (s *Service) GetRoles() ([]Role, error) {
 
 }
 
-//TODO cambiar a role service envez de repository
 func (s *Service) CreateRoleAssigment(payload CreateUserRoleAssigmentPayload, email string, by []uint8) error {
 
 	role, err := s.repository.GetRoleByName(payload.RoleName)
@@ -51,5 +50,53 @@ func (s *Service) CreateRoleAssigment(payload CreateUserRoleAssigmentPayload, em
 		return errors.ErrUserNotFound
 	}
 
+	userRoles, err := s.repository.GetUserRoles(user.UserId)
+
+	for _, userRole := range userRoles {
+		if userRole.RoleName == role.RoleName {
+			return errors.ErrRoleAssigmentExist
+		}
+	}
 	return s.repository.CreateRoleAssigment(user.UserId, role.RoleId, by, payload.ValidUntil)
 }
+
+func (s *Service) GetUserRoles(email string) ([]RoleAssigment, error) {
+
+	user, err := s.userRepository.GetUserByEmail(email)
+	if err != nil {
+		return nil, errors.ErrUserNotFound
+	}
+
+	return s.repository.GetUserRoles(user.UserId)
+
+}
+
+func (s *Service) GetCurrentUserRoles(userId []uint8)([]RoleAssigment, error) {
+	return s.repository.GetUserRoles(userId)
+}
+
+func (s *Service) UserHasRole(roleName string, userId []uint8)(bool, error){
+
+	if roleName == "" {
+		return true, nil 
+	}
+	
+	role, err := s.repository.GetRoleByName(roleName)
+
+	if err != nil {
+		return false, errors.ErrRoleNotFound
+	}
+
+
+	userRoles, err := s.repository.GetUserRoles(userId)
+
+	for _, userRole := range userRoles {
+		if userRole.RoleName == role.RoleName {
+			return true, nil
+		}
+	}
+
+	return false, nil
+
+}
+

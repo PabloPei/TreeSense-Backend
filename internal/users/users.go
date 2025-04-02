@@ -28,6 +28,7 @@ type UserService interface {
 	GetUserPublicByEmail(email string) (*UserPublicPayload, error)
 	RefreshToken(userId []uint8) (string, error)
 	UploadPhoto(payload UploadPhotoPayload, email string) error
+	UserExist(userId []uint8) (bool, error)
 }
 
 type RegisterUserPayload struct {

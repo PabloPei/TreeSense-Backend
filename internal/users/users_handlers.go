@@ -18,17 +18,17 @@ func NewHandler(service UserService) *Handler {
 	return &Handler{service: service}
 }
 
-func (h *Handler) RegisterRoutes(router *mux.Router) {
+func (h *Handler) RegisterRoutes(router *mux.Router, middleware *middlewares.Middleware) {
 
 	// User routes
 	router.HandleFunc("/user/register", h.handleUserRegister).Methods("POST")
 	router.HandleFunc("/user/login", h.handleLogin).Methods("POST")
-	router.HandleFunc("/user/refresh-token", middlewares.WithRefreshTokenAuth(h.handleRefreshToken)).Methods("POST")
-	router.HandleFunc("/user/photo/{email}", middlewares.WithJWTAuth(h.handleUserPhoto)).Methods("POST", "PUT")
+	router.HandleFunc("/user/refresh-token", middleware.WithRefreshTokenAuth(h.handleRefreshToken)).Methods("POST")
+	router.HandleFunc("/user/photo/{email}", middleware.WithAuthAndPerm("",h.handleUserPhoto)).Methods("POST", "PUT")
 	//logout se aplica desde el frontend
 
 	// Admin Routes
-	router.HandleFunc("/user/{email}", middlewares.WithJWTAuth(h.handleGetUser)).Methods("GET")
+	router.HandleFunc("/user/{email}", middleware.WithAuth(h.handleGetUser)).Methods("GET")
 }
 
 func (h *Handler) handleUserRegister(w http.ResponseWriter, r *http.Request) {

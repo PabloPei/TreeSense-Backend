@@ -13,7 +13,16 @@ type ContextKey string
 
 var UserKey ContextKey = "userId"
 
-func WithJWTAuth(handlerFunc http.HandlerFunc) http.HandlerFunc {
+type Middleware struct {
+	roleService RoleService
+	userService UserService
+}
+
+func NewAuthMiddleware(roleService RoleService, userService UserService) *Middleware {
+	return &Middleware{roleService: roleService, userService: userService}
+}
+
+func (m *Middleware)WithAuth(handlerFunc http.HandlerFunc) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -32,6 +41,13 @@ func WithJWTAuth(handlerFunc http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
+		userExist, err := m.userService.UserExist([]uint8(userId))
+
+		if !userExist {
+			utils.WriteError(w, http.StatusForbidden, errors.ErrUserNotFound)
+			return
+		}
+
 		ctx := r.Context()
 		ctx = context.WithValue(ctx, UserKey, userId)
 		r = r.WithContext(ctx)
@@ -41,7 +57,7 @@ func WithJWTAuth(handlerFunc http.HandlerFunc) http.HandlerFunc {
 }
 
 // TODO Ver si implementar como randomstring almacenado en la base, permite hacer logout
-func WithRefreshTokenAuth(handlerFunc http.HandlerFunc) http.HandlerFunc {
+func (m *Middleware)WithRefreshTokenAuth(handlerFunc http.HandlerFunc) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -59,12 +75,50 @@ func WithRefreshTokenAuth(handlerFunc http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
+		userExist, err := m.userService.UserExist([]uint8(userId))
+
+		if !userExist {
+			utils.WriteError(w, http.StatusForbidden, errors.ErrUserNotFound)
+			return
+		}
+
 		ctx := r.Context()
 		ctx = context.WithValue(ctx, UserKey, userId)
 		r = r.WithContext(ctx)
 
 		handlerFunc(w, r)
 	}
+}
+
+func (m *Middleware)WithPerm(rol string) func(http.HandlerFunc) http.HandlerFunc {
+
+	return func(handlerFunc http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+
+			userID, err := GetUserIDFromContext(r.Context())
+			if err != nil {
+				utils.WriteError(w, http.StatusForbidden, errors.ErrUserNotFound)
+				return
+			}
+
+			hasPermission, err := m.roleService.UserHasRole(rol, userID)
+			if err != nil {
+				utils.WriteError(w, http.StatusForbidden, err)
+				return
+			}
+
+			if !hasPermission {
+				utils.WriteError(w, http.StatusForbidden, errors.ErrUserNotHaveRole(rol))
+				return
+			}
+
+			handlerFunc(w, r)
+		}
+	}
+}
+
+func (s *Middleware) WithAuthAndPerm(permission string, handlerFunc http.HandlerFunc) http.HandlerFunc {
+	return s.WithAuth(s.WithPerm(permission)(handlerFunc))
 }
 
 func GetUserIDFromContext(ctx context.Context) ([]uint8, error) {
@@ -80,27 +134,3 @@ func GetUserIDFromContext(ctx context.Context) ([]uint8, error) {
 	return userIdUint, nil
 }
 
-
-/* TODO middle ware para verificar los permisos
-func RequirePermission(handlerFunc http.HandlerFunc, permission string) http.HandlerFunc {
-	return func(next http.HandlerFunc) http.HandlerFunc {
-		userID := 1   // Simulación (debe venir del contexto o JWT)
-		groupID := 10 // Simulación (debe venir de la ruta o sesión)
-
-		// Verificar si el usuario tiene el permiso necesario
-		hasPermission, err := userHasSpecificPermission(db, userID, groupID, permission)
-		if err != nil {
-			http.Error(w, "Error verificando permisos", http.StatusInternalServerError)
-			return
-		}
-
-		if !hasPermission {
-			http.Error(w, "No tienes permisos para esta acción", http.StatusForbidden)
-			return
-		}
-
-		// Si tiene permisos, ejecutar el handler
-		next(w, r)
-	}
-}
-*/

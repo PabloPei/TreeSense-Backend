@@ -65,6 +65,37 @@ func (s *SQLRepository) GetRoles() ([]Role, error) {
 	return roles, nil
 }
 
+func (s *SQLRepository) GetUserRoles(userId []uint8)([]RoleAssigment, error){
+
+	rows, err := s.db.Query("SELECT r.role_id, r.role_name, r.description, ur.valid_until, ur.created_by FROM auth.user_role ur JOIN auth.\"role\" r ON ur.role_id = r.role_id WHERE ur.user_id = $1", userId)
+
+	if err != nil {
+		return nil, errors.ErrReadingRole(err.Error())
+	}
+
+	defer rows.Close()
+
+	var roles []RoleAssigment
+
+	for rows.Next() {
+		role, err := scanRowIntoRoleAssigment(rows)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return nil, errors.ErrRoleNotFound
+			}
+			return nil, errors.ErrRoleScan(err.Error())
+		}
+		roles = append(roles, *role)
+
+	}
+
+	if err != nil {
+		return nil, errors.ErrRoleScan(err.Error())
+	}
+
+	return roles, nil
+}
+
 func (s *SQLRepository) GetRoleByName(roleName string) (*Role, error) {
 
 	log.Println("roleName %s", roleName )
@@ -109,4 +140,24 @@ func scanRowIntoRole(row scannable) (*Role, error) {
 		return nil, errors.ErrRoleScan(err.Error())
 	}
 	return role, nil
+}
+
+func scanRowIntoRoleAssigment(row scannable) (*RoleAssigment, error) {
+
+	roleAssigment := new(RoleAssigment)
+	err := row.Scan(
+		&roleAssigment.RoleId,
+		&roleAssigment.RoleName,
+		&roleAssigment.RoleDescription,
+		&roleAssigment.ValidUntil,
+		&roleAssigment.AssignedBy,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.ErrRoleNotFound
+		}
+		return nil, errors.ErrRoleScan(err.Error())
+	}
+	return roleAssigment, nil
 }
