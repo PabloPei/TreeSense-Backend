@@ -74,8 +74,11 @@ CREATE TABLE auth.user_role (
     valid_until TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (user_id, role_id),
     CONSTRAINT fk_user_role_user FOREIGN KEY (user_id) REFERENCES auth."user"(user_id),
-    CONSTRAINT fk_user_role_role FOREIGN KEY (role_id) REFERENCES auth.role(role_id)
+    CONSTRAINT fk_user_role_role FOREIGN KEY (role_id) REFERENCES auth.role(role_id),
+    CONSTRAINT fk_user_role_created_by FOREIGN KEY (created_by) REFERENCES auth."user"(user_id),  
+    CONSTRAINT fk_user_role_updated_by FOREIGN KEY (updated_by) REFERENCES auth."user"(user_id)
 );
+
 
 COMMENT ON TABLE auth.user_role IS 'Table for assigning roles to users';
 COMMENT ON COLUMN auth.user_role.user_id IS 'Identifier of the user';
@@ -103,62 +106,63 @@ COMMENT ON COLUMN treesense."route".route IS 'Route (latitude, longitude)';
 
 
 CREATE TABLE treesense."tree_specie" (
-    tree_specie_id VARCHAR(10) PRIMARY KEY,  
-    name VARCHAR(100) NOT NULL,  
+    tree_specie_id VARCHAR(100) PRIMARY KEY,  
     description TEXT  
 );
 
 COMMENT ON TABLE treesense."tree_specie" IS 'Table storing different tree species';
 COMMENT ON COLUMN treesense."tree_specie".tree_specie_id IS 'Unique identifier for the tree species (code)';
-COMMENT ON COLUMN treesense."tree_specie".name IS 'Common name of the tree species';
 COMMENT ON COLUMN treesense."tree_specie".description IS 'Additional information about the species';
 
-INSERT INTO treesense."tree_specie" (tree_specie_id, name, description) VALUES
-('QRO', 'Quercus robur', 'Commonly known as English oak, native to Europe'),
-('PIN', 'Pinus sylvestris', 'Scots pine, widely distributed across Eurasia'),
-('ACR', 'Acer rubrum', 'Red maple, native to North America');
+INSERT INTO treesense."tree_specie" (tree_specie_id, description) VALUES
+('Quercus robur', 'Commonly known as English oak, native to Europe'),
+('Pinus sylvestris', 'Scots pine, widely distributed across Eurasia'),
+('Acer rubrum', 'Red maple, native to North America');
 
 
 
 CREATE TABLE treesense."tree_state" (
-    tree_state_id VARCHAR(10) PRIMARY KEY,  
-    name VARCHAR(50) NOT NULL,  
+    tree_state_id VARCHAR(100) PRIMARY KEY,  
     description TEXT  
 );
 
 COMMENT ON TABLE treesense."tree_state" IS 'Table storing different health states of trees';
 COMMENT ON COLUMN treesense."tree_state".tree_state_id IS 'Unique identifier for the tree state';
-COMMENT ON COLUMN treesense."tree_state".name IS 'Name of the tree state';
 COMMENT ON COLUMN treesense."tree_state".description IS 'Additional information about the state';
 
-INSERT INTO treesense."tree_state" (tree_state_id, name, description) VALUES
-('HLT', 'Healthy', 'Tree is in good condition with no visible issues'),
-('SCK', 'Sick', 'Tree shows signs of disease or infestation'),
-('DRY', 'Dry', 'Tree appears to be dry or dying');
+INSERT INTO treesense."tree_state" (tree_state_id, description) VALUES
+('Healthy', 'Tree is in good condition with no visible issues'),
+('Sick', 'Tree shows signs of disease or infestation'),
+('Dry', 'Tree appears to be dry or dying');
 
 
 CREATE TABLE treesense."tree" (
     tree_id UUID PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-    route_id UUID NOT NULL,
-    specie VARCHAR(3),
-    state VARCHAR(3),
+    route_id UUID, --TODO NOT NULL,
+    specie VARCHAR(100),
+    state VARCHAR(100),
     location GEOMETRY(Point, 4326) NOT NULL,
     antique INT,
     height INT,
     diameter INT,
     photo_url TEXT CHECK (photo_url ~* '^https?://.+') DEFAULT 'https://userphoto.png',
     description TEXT,
+    created_by UUID,
+    updated_by UUID,    
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_tree_route FOREIGN KEY (route_id) REFERENCES treesense."route"(route_id),
     CONSTRAINT fk_tree_specie FOREIGN KEY (specie) REFERENCES treesense."tree_specie"(tree_specie_id),
-    CONSTRAINT fk_tree_state FOREIGN KEY (state) REFERENCES treesense."tree_state"(tree_state_id)
+    CONSTRAINT fk_tree_state FOREIGN KEY (state) REFERENCES treesense."tree_state"(tree_state_id),
+    CONSTRAINT fk_tree_created_by FOREIGN KEY (created_by) REFERENCES auth."user"(user_id),  
+    CONSTRAINT fk_tree_updated_by FOREIGN KEY (updated_by) REFERENCES auth."user"(user_id)
 );
  
 
 COMMENT ON TABLE treesense."tree" IS 'Table storing scanned trees along different user routes';
 COMMENT ON COLUMN treesense."tree".tree_id IS 'Unique identifier for the tree';
 COMMENT ON COLUMN treesense."tree".route_id IS 'Reference to the route where the tree was scanned';
-COMMENT ON COLUMN treesense."tree".specie IS 'Species code of the tree (check if 3 characters are enough)';
+COMMENT ON COLUMN treesense."tree".specie IS 'Species name of the tree';
 COMMENT ON COLUMN treesense."tree".state IS 'State of the tree (e.g., healthy, sick, dry)';
 COMMENT ON COLUMN treesense."tree".location IS 'Geographic location of the tree stored as a point (WGS 84 - SRID 4326)';
 COMMENT ON COLUMN treesense."tree".antique IS 'Approximate age of the tree in years';

@@ -23,12 +23,12 @@ func (h *Handler) RegisterRoutes(router *mux.Router, middleware *middlewares.Mid
 	// User routes
 	router.HandleFunc("/user/register", h.handleUserRegister).Methods("POST")
 	router.HandleFunc("/user/login", h.handleLogin).Methods("POST")
-	router.HandleFunc("/user/refresh-token", middleware.WithRefreshTokenAuth(h.handleRefreshToken)).Methods("POST")
-	router.HandleFunc("/user/photo/{email}", middleware.WithAuthAndPerm("",h.handleUserPhoto)).Methods("POST", "PUT")
+	router.HandleFunc("/user/refresh-token", middleware.RequireAuthAndPermission("", true)(h.handleRefreshToken)).Methods("POST")
+	router.HandleFunc("/user/photo/{email}", middleware.RequireAuthAndPermission("", false)(h.handleUserPhoto)).Methods("POST", "PUT")
 	//logout se aplica desde el frontend
 
 	// Admin Routes
-	router.HandleFunc("/user/{email}", middleware.WithAuth(h.handleGetUser)).Methods("GET")
+	router.HandleFunc("/user/{email}", middleware.RequireAuthAndPermission("ADMIN", true) (h.handleGetUser)).Methods("GET")
 }
 
 func (h *Handler) handleUserRegister(w http.ResponseWriter, r *http.Request) {
@@ -87,7 +87,10 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) handleRefreshToken(w http.ResponseWriter, r *http.Request) {
 
 	userId, err := middlewares.GetUserIDFromContext(r.Context())
-
+	if err != nil {
+		utils.WriteError(w, http.StatusUnauthorized, errors.ErrJWTInvalidToken)
+		return
+	}
 
 	newAccessToken, err := h.service.RefreshToken(userId)
 

@@ -13,9 +13,15 @@ var (
 	ErrUploadPhoto        = errors.New("unable to upload photo")
 	ErrRoleAssigmentExist = errors.New("role assigment already exist")
 	ErrUserNotFound       = errors.New("user not found")
+	ErrTreeNotFound       = errors.New("tree not found")
+	ErrTreeSpecieNotFound = errors.New("tree specie not found")
+	ErrTreeStateNotFound  = errors.New("tree state not found")
 	ErrRoleNotFound       = errors.New("role not found")
-	ErrCantUploadRole    = func(err string) error {
+	ErrCantUploadRole     = func(err string) error {
 		return fmt.Errorf("can´t upload role info: %v", err)
+	}
+	ErrCantUploadTree     = func(err string) error {
+		return fmt.Errorf("can´t create tree: %v", err)
 	}
 	ErrCantUploadUser     = func(err string) error {
 		return fmt.Errorf("can´t upload user info: %v", err)
@@ -37,6 +43,9 @@ var (
 	}
 	ErrUserScan = func(err string) error {
 		return fmt.Errorf("error scanning user: %v", err)
+	}
+	ErrTreeScan = func(err string) error {
+		return fmt.Errorf("error scanning tree: %v", err)
 	}
 	ErrReadingRole = func(err string) error {
 		return fmt.Errorf("error reading role: %v", err)

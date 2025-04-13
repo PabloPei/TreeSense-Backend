@@ -2,7 +2,6 @@ package roles
 
 import (
 	"database/sql"
-    "log"
 	"time"
 
 	"github.com/PabloPei/TreeSense-Backend/internal/errors"
@@ -98,7 +97,6 @@ func (s *SQLRepository) GetUserRoles(userId []uint8)([]RoleAssigment, error){
 
 func (s *SQLRepository) GetRoleByName(roleName string) (*Role, error) {
 
-	log.Println("roleName %s", roleName )
 	row := s.db.QueryRow("SELECT role_id, role_name, description, created_at, updated_at FROM auth.\"role\" WHERE role_name = $1", roleName)
 	
 

@@ -20,11 +20,11 @@ func NewHandler(service RoleService) *Handler {
 
 func (h *Handler) RegisterRoutes(router *mux.Router, middleware *middlewares.Middleware) {
 
-	router.HandleFunc("/role", middleware.WithAuthAndPerm("ADMIN", h.handleCreateRole)).Methods("POST")
-	router.HandleFunc("/role", middleware.WithAuthAndPerm("",h.handleGetRole)).Methods("GET")
-	router.HandleFunc("/role/all", middleware.WithAuthAndPerm("ADMIN", h.handleGetAllRole)).Methods("GET")
-	router.HandleFunc("/role/{email}/assign", middleware.WithAuthAndPerm("ADMIN",h.handleCreateRoleAssigment)).Methods("POST")
-	router.HandleFunc("/role/{email}", middleware.WithAuthAndPerm("ADMIN",h.handleGetUserRole)).Methods("GET")
+	router.HandleFunc("/role", middleware.RequireAuthAndPermission("ADMIN", false)(h.handleCreateRole)).Methods("POST")
+	router.HandleFunc("/role", middleware.RequireAuthAndPermission("", false)(h.handleGetRole)).Methods("GET")
+	router.HandleFunc("/role/all", middleware.RequireAuthAndPermission("ADMIN", false)(h.handleGetAllRole)).Methods("GET")
+	router.HandleFunc("/role/{email}/assign", middleware.RequireAuthAndPermission("", false)(h.handleCreateRoleAssigment)).Methods("POST")
+	router.HandleFunc("/role/{email}", middleware.RequireAuthAndPermission("ADMIN", false)(h.handleGetUserRole)).Methods("GET")
 
 }
 
@@ -67,6 +67,10 @@ func (h *Handler) handleGetAllRole(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) handleGetRole(w http.ResponseWriter, r *http.Request) {
 
 	userId, err := middlewares.GetUserIDFromContext(r.Context())
+	if err != nil {
+		utils.WriteError(w, http.StatusUnauthorized, errors.ErrJWTInvalidToken)
+		return
+	}
 
 	roles, err := h.service.GetCurrentUserRoles(userId)
 	if err != nil {
