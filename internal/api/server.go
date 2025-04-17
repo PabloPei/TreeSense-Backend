@@ -10,6 +10,8 @@ import (
 	"github.com/PabloPei/TreeSense-Backend/internal/middlewares"
 	"github.com/PabloPei/TreeSense-Backend/internal/users"
 	"github.com/PabloPei/TreeSense-Backend/internal/roles"
+	"github.com/PabloPei/TreeSense-Backend/internal/permission"
+	"github.com/PabloPei/TreeSense-Backend/internal/audit"
 	"github.com/PabloPei/TreeSense-Backend/internal/trees"
 	"github.com/gorilla/mux"
 )
@@ -27,36 +29,54 @@ func NewAPIServer(cfg conf.ApiServerConfig, db *sql.DB) *APIServer {
 }
 
 func (s *APIServer) Run() error {
-
 	router := mux.NewRouter()
 
 	// Global middlewares
 	router.Use(middlewares.LoggingMiddleware)
 	router.Use(middlewares.RecoveryMiddleware)
-	subrouter := router.PathPrefix("/api/v1").Subrouter()
+	api := router.PathPrefix("/api/v1").Subrouter()
 
 	// Repositories
 	userRepository := users.NewSQLRepository(s.db)
 	roleRepository := roles.NewSQLRepository(s.db)
 	treeRepository := trees.NewSQLRepository(s.db)
+	auditRepository := audit.NewSQLRepository(s.db)
+	permissionRepository := permission.NewSQLRepository(s.db)
 
-	// Servicies
+	// Services
 	userService := users.NewService(userRepository)
 	roleService := roles.NewService(roleRepository, userRepository)
 	treeService := trees.NewService(treeRepository)
+	permissionService := permission.NewService(permissionRepository, userRepository)
+	auditService := audit.NewService(auditRepository)
 
-	// Local Middlewares
-	authMiddleware := middlewares.NewAuthMiddleware(roleService, userService)
+	// Middlewares
+	authMiddleware := middlewares.NewAuthMiddleware(permissionService, userService, auditService)
+	auditMiddleware := middlewares.NewAuditMiddleware()
 
-	// Routes
+	/// Subrouters
+
+	// without audit
+	userRouter := api.PathPrefix("/user").Subrouter()
 	userHandler := users.NewHandler(userService)
-	userHandler.RegisterRoutes(subrouter, authMiddleware)
-	roleHandler := roles.NewHandler(roleService)
-	roleHandler.RegisterRoutes(subrouter, authMiddleware)
+	userHandler.RegisterRoutes(userRouter, authMiddleware)
+
+	treeRouter := api.PathPrefix("/tree").Subrouter()
 	treeHandler := trees.NewHandler(treeService)
-	treeHandler.RegisterRoutes(subrouter, authMiddleware)
+	treeHandler.RegisterRoutes(treeRouter, authMiddleware)
+
+	// with audit 
+	roleRouter := api.PathPrefix("/role").Subrouter()
+	roleHandler := roles.NewHandler(roleService)
+	roleHandler.RegisterRoutes(roleRouter, authMiddleware)
+	roleRouter.Use(auditMiddleware)
+
+
+	permissionRouter := api.PathPrefix("/permission").Subrouter()
+	permissionRouter.Use(auditMiddleware)
+	permissionHandler := permission.NewHandler(permissionService)
+	permissionHandler.RegisterRoutes(permissionRouter, authMiddleware)
 
 	log.Println("Server running on", s.addr)
 	return http.ListenAndServe(s.addr, router)
-
 }

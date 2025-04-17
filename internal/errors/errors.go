@@ -22,6 +22,9 @@ var (
 	ErrCantDeleteRole     = func(err string) error {
 		return fmt.Errorf("can´t delete role assigment: %v", err)
 	}
+	ErrLogActivity     = func(err error) error {
+		return fmt.Errorf("can´t log activity: %v", err)
+	}
 	ErrReadingPermission     = func(err string) error {
 		return fmt.Errorf("can´t read user permissions: %v", err)
 	}

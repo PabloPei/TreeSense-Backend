@@ -78,46 +78,6 @@ func (s *Service) UserHasRole(roleName string, userId []uint8)(bool, error){
 
 }
 
-/// Permissions /// 
-func (s *Service) GetUserPermissions(email string) ([]PermissionAssignment, error) {
-	user, err := s.userRepository.GetUserByEmail(email)
-	if err != nil {
-		return nil, errors.ErrUserNotFound
-	}
-
-	return s.repository.GetUserPermissions(user.UserId)
-}
-
-func (s *Service) GetCurrentUserPermissions(userId []uint8) ([]PermissionAssignment, error) {
-	return s.repository.GetUserPermissions(userId)
-}
-
-func (s *Service) UserHasPermissions(permissionNames []string, userId []uint8) (bool, error) {
-
-	if len(permissionNames) == 0 {
-		return true, nil 
-	}
-
-
-	userPermissions, err := s.repository.GetUserPermissions(userId)
-	if err != nil {
-		return false, err
-	}
-
-	userPermissionMap := make(map[string]bool)
-	for _, userPermission := range userPermissions {
-		userPermissionMap[userPermission.PermissionName] = true
-	}
-
-	for _, permissionName := range permissionNames {
-		if !userPermissionMap[permissionName] {
-			return false, nil
-		}
-	}
-
-	return true, nil
-}
-
 /// Assigments /// 
 
 func (s *Service) CreateRoleAssigment(payload CreateUserRoleAssigmentPayload, email string, by []uint8) error {

@@ -1,6 +1,6 @@
 package middlewares
 
-type RoleService interface{
+type PermissionService interface{
 	UserHasPermissions(permissionNames []string, userId []uint8) (bool, error)
 }
 

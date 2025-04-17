@@ -20,33 +20,22 @@ type RoleAssigment struct {
 	AssignedBy    	 []uint8   `json:"assignedBy"`
 }
 
-type PermissionAssignment struct {
-	RoleName       string   `json:"roleName"`
-	PermissionName string   `json:"permissionName"`
-	Description    string   `json:"description"`
-}
-
 type RoleRepository interface {
 	CreateRole(Role) error
 	GetRoles() ([]Role, error) 
 	GetRoleByName(roleName string) (*Role, error)
 	CreateRoleAssigment(userId []uint8, roleId []uint8, by []uint8, valid_until time.Time) error
 	GetUserRoles(userId []uint8)([]RoleAssigment, error)
-	GetUserPermissions(userId []uint8) ([]PermissionAssignment, error)
-	GetPermissionByName(name string) (*PermissionAssignment, error)
 	DeleteRoleAssigment(userId []uint8, roleId []uint8) error
 }
 
 type RoleService interface {
-	UserHasPermissions(permissionNames []string, userId []uint8) (bool, error)
 	CreateRole(payload CreateRolePayload) error
 	GetRoles() ([]Role, error) 
 	CreateRoleAssigment(payload CreateUserRoleAssigmentPayload, email string, by []uint8) error
 	GetUserRoles(email string) ([]RoleAssigment, error)
 	GetCurrentUserRoles(userId []uint8)([]RoleAssigment, error) 
 	UserHasRole(roleName string, userId []uint8)(bool, error)
-	GetUserPermissions(email string) ([]PermissionAssignment, error)
-	GetCurrentUserPermissions(userId []uint8) ([]PermissionAssignment, error)
 	DeleteRoleAssigment(payload DeleteUserRoleAssigmentPayload, email string) error
 }
 

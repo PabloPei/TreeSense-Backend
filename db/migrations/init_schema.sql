@@ -223,3 +223,22 @@ COMMENT ON COLUMN treesense."tree".height IS 'Height of the tree in meters';
 COMMENT ON COLUMN treesense."tree".diameter IS 'Diameter of the tree trunk in centimeters';
 COMMENT ON COLUMN treesense."tree".description IS 'Additional information about the tree';
 COMMENT ON COLUMN treesense."tree".created_at IS 'Timestamp of when the record was created';
+
+
+-- ===============================================
+-- Audit Schema: Schema for audit purpose
+-- ===============================================
+
+CREATE SCHEMA IF NOT EXISTS audit;
+
+CREATE TABLE audit."activity_log" (
+    activity_log_id UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL,
+    action_name VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    user_id UUID,
+    CONSTRAINT fk_activity_log_user_user FOREIGN KEY (user_id) REFERENCES auth."user"(user_id)
+);
+
+COMMENT ON TABLE audit."activity_log" IS 'Table of audit for activitys of users';
+COMMENT ON COLUMN audit."activity_log".user_id IS 'Unique identifier for the user who made the action';
+COMMENT ON COLUMN audit."activity_log".action_name IS 'Action Name';

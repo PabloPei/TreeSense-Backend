@@ -20,7 +20,7 @@ func NewHandler(service TreeService) *Handler {
 
 func (h *Handler) RegisterRoutes(router *mux.Router, middleware *middlewares.Middleware) {
 
-	router.HandleFunc("/tree", middleware.RequireAuthAndPermission([]string{"SENSE"}, false)(h.handleCreateTree)).Methods("POST")
+	router.HandleFunc("", middleware.RequireAuthAndPermission([]string{"SENSE"}, false)(h.handleCreateTree)).Methods("POST")
 
 }
 

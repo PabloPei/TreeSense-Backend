@@ -21,11 +21,11 @@ func NewHandler(service UserService) *Handler {
 func (h *Handler) RegisterRoutes(router *mux.Router, middleware *middlewares.Middleware) {
 
 	//logout se aplica desde el frontend
-	router.HandleFunc("/user/register", h.handleUserRegister).Methods("POST")
-	router.HandleFunc("/user/login", h.handleLogin).Methods("POST")
-	router.HandleFunc("/user/refresh-token", middleware.RequireAuthAndPermission([]string{}, true)(h.handleRefreshToken)).Methods("POST")
-	router.HandleFunc("/user/photo/{email}", middleware.RequireAuthAndPermission([]string{}, false)(h.handleUserPhoto)).Methods("POST", "PUT")
-	router.HandleFunc("/user/{email}", middleware.RequireAuthAndPermission([]string{"MANAGE"}, true) (h.handleGetUser)).Methods("GET")
+	router.HandleFunc("/register", h.handleUserRegister).Methods("POST")
+	router.HandleFunc("/login", h.handleLogin).Methods("POST")
+	router.HandleFunc("/refresh-token", middleware.RequireAuthAndPermission([]string{}, true)(h.handleRefreshToken)).Methods("POST")
+	router.HandleFunc("/photo/{email}", middleware.RequireAuthAndPermission([]string{}, false)(h.handleUserPhoto)).Methods("POST", "PUT")
+	router.HandleFunc("/{email}", middleware.RequireAuthAndPermission([]string{"MANAGE"}, true) (h.handleGetUser)).Methods("GET")
 }
 
 func (h *Handler) handleUserRegister(w http.ResponseWriter, r *http.Request) {

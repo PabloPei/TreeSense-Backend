@@ -6,6 +6,7 @@ import (
 
 	"github.com/PabloPei/TreeSense-Backend/internal/auth"
 	"github.com/PabloPei/TreeSense-Backend/internal/errors"
+	"github.com/PabloPei/TreeSense-Backend/internal/audit"
 	"github.com/PabloPei/TreeSense-Backend/utils"
 )
 
@@ -14,12 +15,13 @@ type ContextKey string
 var UserKey ContextKey = "userId"
 
 type Middleware struct {
-	roleService RoleService
+	permissionService PermissionService
 	userService UserService
+	auditService audit.AuditService
 }
 
-func NewAuthMiddleware(roleService RoleService, userService UserService) *Middleware {
-	return &Middleware{roleService: roleService, userService: userService}
+func NewAuthMiddleware(permissionService PermissionService, userService UserService, auditService audit.AuditService) *Middleware {
+	return &Middleware{permissionService: permissionService, userService: userService, auditService: auditService}
 }
 
 func (m *Middleware) RequireAuthAndPermission(permissions []string, useRefreshToken bool) func(http.HandlerFunc) http.HandlerFunc {
@@ -47,7 +49,7 @@ func (m *Middleware) RequireAuthAndPermission(permissions []string, useRefreshTo
 				return
 			}
 
-			hasPerm, err := m.roleService.UserHasPermissions(permissions, userID)
+			hasPerm, err := m.permissionService.UserHasPermissions(permissions, userID)
 			if err != nil || !hasPerm {
 				utils.WriteError(w, http.StatusForbidden, errors.ErrUserNotHavePermissions(permissions))
 				return
@@ -55,13 +57,30 @@ func (m *Middleware) RequireAuthAndPermission(permissions []string, useRefreshTo
 			
 
 			ctx := context.WithValue(r.Context(), UserKey, userIDStr)
+			
 			handler(w, r.WithContext(ctx))
+
+			if auditable, ok := ctx.Value("audit").(bool); ok && auditable {
+
+				action := inferActionName(r.Method, r.URL.Path)
+
+				logActivity := audit.ActivityLog{
+					UserID: userID,
+					Action: action,
+				}
+	
+				err = m.auditService.LogActivity(logActivity)
+				if err != nil {
+					errors.ErrLogActivity(err)
+				}
+			}
 		}
 	}
 }
 
 func GetUserIDFromContext(ctx context.Context) ([]uint8, error) {
 	userID, ok := ctx.Value(UserKey).(string)
+	
 	if !ok {
 		return nil, errors.ErrJWTInvalidToken
 	}
