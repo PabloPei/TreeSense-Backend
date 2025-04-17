@@ -17,6 +17,14 @@ var (
 	ErrTreeSpecieNotFound = errors.New("tree specie not found")
 	ErrTreeStateNotFound  = errors.New("tree state not found")
 	ErrRoleNotFound       = errors.New("role not found")
+	ErrPermissionNotFound = errors.New("permission not found")
+	ErrRoleAssigmentNotExist = errors.New("role assigment not exist")
+	ErrCantDeleteRole     = func(err string) error {
+		return fmt.Errorf("can´t delete role assigment: %v", err)
+	}
+	ErrReadingPermission     = func(err string) error {
+		return fmt.Errorf("can´t read user permissions: %v", err)
+	}
 	ErrCantUploadRole     = func(err string) error {
 		return fmt.Errorf("can´t upload role info: %v", err)
 	}
@@ -44,6 +52,9 @@ var (
 	ErrUserScan = func(err string) error {
 		return fmt.Errorf("error scanning user: %v", err)
 	}
+	ErrPermissionScan = func(err string) error {
+		return fmt.Errorf("error scanning permission: %v", err)
+	}
 	ErrTreeScan = func(err string) error {
 		return fmt.Errorf("error scanning tree: %v", err)
 	}
@@ -53,8 +64,8 @@ var (
 	ErrRoleScan = func(err string) error {
 		return fmt.Errorf("error scaning role: %v", err)
 	}
-	ErrUserNotHaveRole = func(rol string) error {
-		return fmt.Errorf("error user does not have role %s", rol)
+	ErrUserNotHavePermissions = func(permissions []string) error {
+		return fmt.Errorf("error user does not have permissions:  %v", permissions)
 	}
 	ErrRoleAlreadyExist = func(role string) error {
 		return fmt.Errorf("role with name %s already exists", role)

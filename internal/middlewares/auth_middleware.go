@@ -22,7 +22,7 @@ func NewAuthMiddleware(roleService RoleService, userService UserService) *Middle
 	return &Middleware{roleService: roleService, userService: userService}
 }
 
-func (m *Middleware) RequireAuthAndPermission(permission string, useRefreshToken bool) func(http.HandlerFunc) http.HandlerFunc {
+func (m *Middleware) RequireAuthAndPermission(permissions []string, useRefreshToken bool) func(http.HandlerFunc) http.HandlerFunc {
 	return func(handler http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			token := utils.GetTokenFromRequest(r)
@@ -47,13 +47,12 @@ func (m *Middleware) RequireAuthAndPermission(permission string, useRefreshToken
 				return
 			}
 
-			if permission != "" {
-				hasPerm, err := m.roleService.UserHasRole(permission, userID)
-				if err != nil || !hasPerm {
-					utils.WriteError(w, http.StatusForbidden, errors.ErrUserNotHaveRole(permission))
-					return
-				}
+			hasPerm, err := m.roleService.UserHasPermissions(permissions, userID)
+			if err != nil || !hasPerm {
+				utils.WriteError(w, http.StatusForbidden, errors.ErrUserNotHavePermissions(permissions))
+				return
 			}
+			
 
 			ctx := context.WithValue(r.Context(), UserKey, userIDStr)
 			handler(w, r.WithContext(ctx))

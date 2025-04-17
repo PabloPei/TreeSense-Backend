@@ -60,6 +60,7 @@ VALUES
     ( 'FIELD AGENT', 'User responsible for collecting and uploading data from the field with limited access to the application'),
     ( 'VIEWER', 'User with read-only access to view dashboards and reports'),
     ( 'EDITOR', 'User with the ability to edit content and update records'),
+    ( 'MANAGER', 'User with the ability to manage users'),
     ( 'ADMIN', 'User with full administrative privileges, including managing roles and system configurations');
 
 
@@ -84,6 +85,58 @@ COMMENT ON TABLE auth.user_role IS 'Table for assigning roles to users';
 COMMENT ON COLUMN auth.user_role.user_id IS 'Identifier of the user';
 COMMENT ON COLUMN auth.user_role.role_id IS 'Identifier of the assigned role';
 COMMENT ON COLUMN auth.user_role.valid_until IS 'Date until the assignment is valid';
+
+CREATE TABLE auth.permission (
+    permission_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    permission_name VARCHAR(50) UNIQUE NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+COMMENT ON TABLE auth.permission IS 'Table for permissions in the application';
+COMMENT ON COLUMN auth.permission.permission_id IS 'Identifier of the permission';
+COMMENT ON COLUMN auth.permission.permission_name IS 'Name of the permission';
+COMMENT ON COLUMN auth.permission.description IS 'Description of the permission';
+
+INSERT INTO auth.permission (permission_name, description)
+VALUES
+    ('READ',   'User with permission to view tree census data and metrics, but cannot modify any records.'),
+    ('SENSE',  'Field technician responsible for collecting and uploading tree data from the field, with limited application access.'),
+    ('EDIT',   'User with permission to modify existing tree data and update records.'),
+    ('DELETE', 'User with permission to delete tree records from the system.'),
+    ('MANAGE', 'User with permission to manage roles and permissions within the application.'),
+    ('CONFIG',  'User with permissions for system configuration.');
+
+
+CREATE TABLE auth.role_permission (
+    role_name VARCHAR(50),
+    permission_name VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (role_name, permission_name),
+    CONSTRAINT fk_role_permission_permission FOREIGN KEY (permission_name) REFERENCES auth."permission"(permission_name),
+    CONSTRAINT fk_permission_role_role FOREIGN KEY (role_name) REFERENCES auth.role(role_name)
+);
+
+COMMENT ON TABLE auth.role_permission IS 'Table for role assigment permissions in the application';
+
+INSERT INTO auth.role_permission (role_name, permission_name)
+VALUES
+    ('FIELD AGENT', 'SENSE'),
+    ('VIEWER', 'READ'),
+    ('EDITOR', 'READ'),
+    ('EDITOR', 'EDIT'),
+    ('MANAGER', 'READ'),
+    ('MANAGER', 'MANAGE'),
+    ('ADMIN', 'READ'),
+    ('ADMIN', 'SENSE'),
+    ('ADMIN', 'EDIT'),
+    ('ADMIN', 'DELETE'),
+    ('ADMIN', 'MANAGE'),
+    ('ADMIN', 'CONFIG');
+
+
 
 -- ===============================================
 -- Main Schema: core application data

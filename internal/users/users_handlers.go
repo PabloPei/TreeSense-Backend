@@ -20,15 +20,12 @@ func NewHandler(service UserService) *Handler {
 
 func (h *Handler) RegisterRoutes(router *mux.Router, middleware *middlewares.Middleware) {
 
-	// User routes
+	//logout se aplica desde el frontend
 	router.HandleFunc("/user/register", h.handleUserRegister).Methods("POST")
 	router.HandleFunc("/user/login", h.handleLogin).Methods("POST")
-	router.HandleFunc("/user/refresh-token", middleware.RequireAuthAndPermission("", true)(h.handleRefreshToken)).Methods("POST")
-	router.HandleFunc("/user/photo/{email}", middleware.RequireAuthAndPermission("", false)(h.handleUserPhoto)).Methods("POST", "PUT")
-	//logout se aplica desde el frontend
-
-	// Admin Routes
-	router.HandleFunc("/user/{email}", middleware.RequireAuthAndPermission("ADMIN", true) (h.handleGetUser)).Methods("GET")
+	router.HandleFunc("/user/refresh-token", middleware.RequireAuthAndPermission([]string{}, true)(h.handleRefreshToken)).Methods("POST")
+	router.HandleFunc("/user/photo/{email}", middleware.RequireAuthAndPermission([]string{}, false)(h.handleUserPhoto)).Methods("POST", "PUT")
+	router.HandleFunc("/user/{email}", middleware.RequireAuthAndPermission([]string{"MANAGE"}, true) (h.handleGetUser)).Methods("GET")
 }
 
 func (h *Handler) handleUserRegister(w http.ResponseWriter, r *http.Request) {
@@ -83,7 +80,6 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, map[string]string{"accessToken": token, "refreshToken": refreshToken})
 }
 
-// TODO Arreglar esta ruta 
 func (h *Handler) handleRefreshToken(w http.ResponseWriter, r *http.Request) {
 
 	userId, err := middlewares.GetUserIDFromContext(r.Context())

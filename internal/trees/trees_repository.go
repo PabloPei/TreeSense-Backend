@@ -1,7 +1,6 @@
 package trees
 
 import (
-	"log"
 	"database/sql"
 
 	"github.com/PabloPei/TreeSense-Backend/internal/errors"
@@ -29,7 +28,6 @@ func (s *SQLRepository) CreateTree(tree Tree) error {
 }
 
 func (s *SQLRepository) GetTreeStateById(stateId string) (*TreeState, error) {
-	log.Println("stateId %v", stateId)
 	row :=	s.db.QueryRow("SELECT * FROM treesense.\"tree_state\" where tree_state_id = $1", stateId)
 	return scanRowIntoTreeState(row)
 }

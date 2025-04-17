@@ -2,7 +2,6 @@ package trees
 
 import (
 	"net/http"
-	"log"
 
 	"github.com/PabloPei/TreeSense-Backend/internal/errors"
 	"github.com/PabloPei/TreeSense-Backend/internal/middlewares"
@@ -21,8 +20,7 @@ func NewHandler(service TreeService) *Handler {
 
 func (h *Handler) RegisterRoutes(router *mux.Router, middleware *middlewares.Middleware) {
 
-	// User routes
-	router.HandleFunc("/tree", middleware.RequireAuthAndPermission("FIELD AGENT", false)(h.handleCreateTree)).Methods("POST")
+	router.HandleFunc("/tree", middleware.RequireAuthAndPermission([]string{"SENSE"}, false)(h.handleCreateTree)).Methods("POST")
 
 }
 
@@ -34,14 +32,12 @@ func (h *Handler) handleCreateTree(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println("userId %v", userId)
 
 	var tree createTreePayload
 	if err := utils.ParseJSON(r, &tree); err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
-	log.Println("tree %v", tree)
 	
 	if err := utils.Validate.Struct(tree); err != nil {
 		validationErrors := err.(validator.ValidationErrors)

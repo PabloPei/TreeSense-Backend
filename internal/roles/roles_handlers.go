@@ -20,14 +20,22 @@ func NewHandler(service RoleService) *Handler {
 
 func (h *Handler) RegisterRoutes(router *mux.Router, middleware *middlewares.Middleware) {
 
-	router.HandleFunc("/role", middleware.RequireAuthAndPermission("ADMIN", false)(h.handleCreateRole)).Methods("POST")
-	router.HandleFunc("/role", middleware.RequireAuthAndPermission("", false)(h.handleGetRole)).Methods("GET")
-	router.HandleFunc("/role/all", middleware.RequireAuthAndPermission("ADMIN", false)(h.handleGetAllRole)).Methods("GET")
-	router.HandleFunc("/role/{email}/assign", middleware.RequireAuthAndPermission("", false)(h.handleCreateRoleAssigment)).Methods("POST")
-	router.HandleFunc("/role/{email}", middleware.RequireAuthAndPermission("ADMIN", false)(h.handleGetUserRole)).Methods("GET")
+	/// Roles ///
+	router.HandleFunc("/role", middleware.RequireAuthAndPermission([]string{"MANAGE"}, false)(h.handleCreateRole)).Methods("POST")
+	router.HandleFunc("/role", middleware.RequireAuthAndPermission([]string{"MANAGE"}, false)(h.handleGetRoles)).Methods("GET")
+	router.HandleFunc("/role/all", middleware.RequireAuthAndPermission([]string{"MANAGE"}, false)(h.handleGetAllRoles)).Methods("GET")
+	router.HandleFunc("/role/{email}", middleware.RequireAuthAndPermission([]string{"MANAGE"}, false)(h.handleGetUserRoles)).Methods("GET")
+	
+	/// Permissions ///
+	router.HandleFunc("/permission", middleware.RequireAuthAndPermission([]string{"MANAGE"}, false)(h.handleGetPermissions)).Methods("GET")
+	router.HandleFunc("/permission/{email}", middleware.RequireAuthAndPermission([]string{"MANAGE"}, false)(h.handleGetUserPermissions)).Methods("GET")
 
+	/// Assigments /// 
+	router.HandleFunc("/role/{email}", middleware.RequireAuthAndPermission([]string{}, false)(h.handleCreateRoleAssigment)).Methods("POST")
+	router.HandleFunc("/role/{email}", middleware.RequireAuthAndPermission([]string{}, false)(h.handleDeleteRoleAssigment)).Methods("DELETE")
 }
 
+/// Roles ///
 func (h *Handler) handleCreateRole(w http.ResponseWriter, r *http.Request) {
 
 	var role CreateRolePayload
@@ -53,7 +61,7 @@ func (h *Handler) handleCreateRole(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *Handler) handleGetAllRole(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) handleGetAllRoles(w http.ResponseWriter, r *http.Request) {
 
 	roles, err := h.service.GetRoles()
 	if err != nil {
@@ -64,7 +72,7 @@ func (h *Handler) handleGetAllRole(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusCreated, roles)
 }
 
-func (h *Handler) handleGetRole(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) handleGetRoles(w http.ResponseWriter, r *http.Request) {
 
 	userId, err := middlewares.GetUserIDFromContext(r.Context())
 	if err != nil {
@@ -81,7 +89,7 @@ func (h *Handler) handleGetRole(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusCreated, roles)
 }
 
-func (h *Handler) handleGetUserRole(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) handleGetUserRoles(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 	email, ok := vars["email"]
@@ -100,8 +108,45 @@ func (h *Handler) handleGetUserRole(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusCreated, roles)
 }
 
+/// Permissions ///
+func (h *Handler) handleGetPermissions(w http.ResponseWriter, r *http.Request) {
 
-//TODO verificar que no exista el rol assigment ya, para eso crear roles by user etc
+	userId, err := middlewares.GetUserIDFromContext(r.Context())
+	if err != nil {
+		utils.WriteError(w, http.StatusUnauthorized, errors.ErrJWTInvalidToken)
+		return
+	}
+
+	roles, err := h.service.GetCurrentUserPermissions(userId)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusCreated, roles)
+}
+
+func (h *Handler) handleGetUserPermissions(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	email, ok := vars["email"]
+
+	if !ok {
+		utils.WriteError(w, http.StatusBadRequest, errors.ErrUserNotFound)
+		return
+	}
+
+	roles, err := h.service.GetUserPermissions(email)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusCreated, roles)
+}
+
+/// Assigments /// 
+
 func (h *Handler) handleCreateRoleAssigment(w http.ResponseWriter, r *http.Request) {
 
 	var roleAssigment CreateUserRoleAssigmentPayload
@@ -139,5 +184,39 @@ func (h *Handler) handleCreateRoleAssigment(w http.ResponseWriter, r *http.Reque
 
 	utils.WriteJSON(w, http.StatusCreated, map[string]string{
 		"message": "Role successfully assigned",
+	})
+}
+
+
+func (h *Handler) handleDeleteRoleAssigment(w http.ResponseWriter, r *http.Request) {
+
+	var roleAssigment DeleteUserRoleAssigmentPayload
+	if err := utils.ParseJSON(r, &roleAssigment); err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	if err := utils.Validate.Struct(roleAssigment); err != nil {
+		validationErrors := err.(validator.ValidationErrors)
+		utils.WriteError(w, http.StatusBadRequest, errors.ErrInvalidaPayload(validationErrors.Error()))
+		return
+	}
+
+	vars := mux.Vars(r)
+	email, ok := vars["email"]
+	if !ok {
+		utils.WriteError(w, http.StatusBadRequest, errors.ErrUserNotFound)
+		return
+	}
+
+	
+	err := h.service.DeleteRoleAssigment(roleAssigment, email)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusCreated, map[string]string{
+		"message": "Role assigned deleted",
 	})
 }
