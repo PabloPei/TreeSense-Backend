@@ -60,6 +60,8 @@ func (s *APIServer) Run() error {
 	userRouter := api.PathPrefix("/user").Subrouter()
 	userHandler := users.NewHandler(userService)
 	userHandler.RegisterRoutes(userRouter, authMiddleware)
+	userRouter.Use(auditMiddleware)
+
 
 	treeRouter := api.PathPrefix("/tree").Subrouter()
 	treeHandler := trees.NewHandler(treeService)
