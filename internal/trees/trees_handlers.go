@@ -21,6 +21,7 @@ func NewHandler(service TreeService) *Handler {
 func (h *Handler) RegisterRoutes(router *mux.Router, middleware *middlewares.Middleware) {
 
 	router.HandleFunc("", middleware.RequireAuthAndPermission([]string{"SENSE"}, false)(h.handleCreateTree)).Methods("POST")
+	router.HandleFunc("/species", middleware.RequireAuthAndPermission([]string{"SENSE"}, false)(h.handleGetSpecies)).Methods("GET")
 
 }
 
@@ -54,4 +55,18 @@ func (h *Handler) handleCreateTree(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusCreated, map[string]string{
 		"message": "Tree created successfully",
 	})
+}
+
+
+func (h *Handler) handleGetSpecies(w http.ResponseWriter, r *http.Request) {
+
+
+	species, err := h.service.GetSpecies()
+
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, species)
 }

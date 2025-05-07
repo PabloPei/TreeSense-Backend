@@ -46,3 +46,9 @@ func (s *Service) CreateTree(payload createTreePayload, userId []uint8) error {
 
 	return s.repository.CreateTree(tree)
 }
+
+func (s *Service) GetSpecies() ([]TreeSpecie, error) {
+
+	return s.repository.GetSpecies()
+
+}

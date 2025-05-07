@@ -11,8 +11,8 @@ type Tree struct {
 	State       string    `json:"state"`
 	Location    string    `json:"location"`
 	Antique     int       `json:"antique"`
-	Height      int       `json:"height"`
-	Diameter    int       `json:"diameter"`
+	Height      float64   `json:"height"`
+	Diameter    float64   `json:"diameter"`
 	PhotoUrl    string    `json:"photoUrl"`
 	Description string    `json:"description"`
 	CreatedBy   []uint8   `json:"createdBy"`
@@ -22,7 +22,7 @@ type Tree struct {
 }
 
 type TreeSpecie struct {
-	TreeSpecieId []uint8 `json:"treeSpecieId"`
+	TreeSpecieId string `json:"treeSpecieId"`
 	Description string `json:"description"`
 }
 
@@ -36,10 +36,12 @@ type TreeRepository interface {
 	GetTreeStateById(stateId string) (*TreeState, error)
 	GetSpecieById(specieId string) (*TreeSpecie, error)
 	CreateTree(tree Tree) error
+	GetSpecies() ([]TreeSpecie, error)
 }
 
 type TreeService interface {
 	CreateTree(tree createTreePayload, userId []uint8) error
+	GetSpecies() ([]TreeSpecie, error)
 }
 
 
@@ -50,8 +52,8 @@ type createTreePayload struct {
 	Latitude       float64 `json:"latitude" validate:"required"`
     Longitude   float64 `json:"longitude" validate:"required"`
 	Antique int `json:"antique" validate:"required"`
-	Height int `json:"height" validate:"required"`
-	Diameter int `json:"diameter" validate:"required"`
+	Height float64 `json:"height" validate:"required"`
+	Diameter float64 `json:"diameter" validate:"required"`
 	PhotoUrl string `json:"photoUrl" validate:"required,uri"`
 	Description string `json:"description" validate:"required"`
 }

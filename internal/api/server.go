@@ -57,22 +57,21 @@ func (s *APIServer) Run() error {
 	/// Subrouters
 
 	// without audit
-	userRouter := api.PathPrefix("/user").Subrouter()
-	userHandler := users.NewHandler(userService)
-	userHandler.RegisterRoutes(userRouter, authMiddleware)
-	userRouter.Use(auditMiddleware)
-
 
 	treeRouter := api.PathPrefix("/tree").Subrouter()
 	treeHandler := trees.NewHandler(treeService)
 	treeHandler.RegisterRoutes(treeRouter, authMiddleware)
 
 	// with audit 
+	userRouter := api.PathPrefix("/user").Subrouter()
+	userHandler := users.NewHandler(userService)
+	userHandler.RegisterRoutes(userRouter, authMiddleware)
+	userRouter.Use(auditMiddleware)
+
 	roleRouter := api.PathPrefix("/role").Subrouter()
 	roleHandler := roles.NewHandler(roleService)
 	roleHandler.RegisterRoutes(roleRouter, authMiddleware)
 	roleRouter.Use(auditMiddleware)
-
 
 	permissionRouter := api.PathPrefix("/permission").Subrouter()
 	permissionRouter.Use(auditMiddleware)

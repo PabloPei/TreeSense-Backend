@@ -61,6 +61,12 @@ var (
 	ErrTreeScan = func(err string) error {
 		return fmt.Errorf("error scanning tree: %v", err)
 	}
+	ErrTreeSpecieScan = func(err string) error {
+		return fmt.Errorf("error scanning tree specie: %v", err)
+	}
+	ErrReadingSpecies = func(err string) error {
+		return fmt.Errorf("error reading tree specie: %v", err)
+	}
 	ErrReadingRole = func(err string) error {
 		return fmt.Errorf("error reading role: %v", err)
 	}

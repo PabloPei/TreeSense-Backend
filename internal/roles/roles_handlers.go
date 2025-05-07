@@ -65,7 +65,7 @@ func (h *Handler) handleGetAllRoles(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusCreated, roles)
+	utils.WriteJSON(w, http.StatusOK, roles)
 }
 
 func (h *Handler) handleGetRoles(w http.ResponseWriter, r *http.Request) {
@@ -82,7 +82,7 @@ func (h *Handler) handleGetRoles(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusCreated, roles)
+	utils.WriteJSON(w, http.StatusOK, roles)
 }
 
 func (h *Handler) handleGetUserRoles(w http.ResponseWriter, r *http.Request) {
@@ -101,7 +101,7 @@ func (h *Handler) handleGetUserRoles(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusCreated, roles)
+	utils.WriteJSON(w, http.StatusOK, roles)
 }
 
 /// Assigments /// 

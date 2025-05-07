@@ -15,6 +15,10 @@ func NewSQLRepository(db *sql.DB) *SQLRepository {
 	return &SQLRepository{db: db}
 }
 
+type scannable interface {
+	Scan(dest ...interface{}) error
+}
+
 func (s *SQLRepository) CreateTree(tree Tree) error {
 	_, err := s.db.Exec(
 		"INSERT INTO treesense.\"tree\" (specie, state, antique, height, diameter, photo_url, description, location, created_by) VALUES ($1, $2, $3, $4, $5, $6, $7, ST_GeomFromText($8, 4326), $9)",
@@ -36,6 +40,32 @@ func (s *SQLRepository) GetSpecieById(stateId string) (*TreeSpecie, error) {
 	row :=	s.db.QueryRow("SELECT * FROM treesense.\"tree_specie\" where tree_specie_id = $1", stateId)
 	return scanRowIntoTreeSpecie(row)
 }
+
+func (s *SQLRepository) GetSpecies() ([]TreeSpecie, error) {
+
+	rows, err := s.db.Query("SELECT * FROM treesense.\"tree_specie\"")
+	if err != nil {
+		return nil, errors.ErrReadingSpecies(err.Error())
+	}
+	defer rows.Close()
+
+	var treeSpecies []TreeSpecie
+
+	for rows.Next() {
+		specie, err := scanRowIntoTreeSpecie(rows)
+		if err != nil {
+			return nil, err 
+		}
+		treeSpecies = append(treeSpecies, *specie)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, errors.ErrTreeSpecieScan(err.Error())
+	}
+
+	return treeSpecies, nil
+}
+
 
 func (s *SQLRepository) GetTreeById(id []uint8) (*Tree, error) {
 	row := s.db.QueryRow("SELECT * FROM treesense.\"tree\" WHERE tree_id = $1", id)
@@ -88,7 +118,7 @@ func scanRowIntoTreeState(row *sql.Row) (*TreeState, error) {
 	return treeState, nil
 }
 
-func scanRowIntoTreeSpecie(row *sql.Row) (*TreeSpecie, error) {
+func scanRowIntoTreeSpecie(row scannable) (*TreeSpecie, error) {
 
 	treeSpecie := new(TreeSpecie)
 	err := row.Scan(
