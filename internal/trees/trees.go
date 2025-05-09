@@ -37,11 +37,13 @@ type TreeRepository interface {
 	GetSpecieById(specieId string) (*TreeSpecie, error)
 	CreateTree(tree Tree) error
 	GetSpecies() ([]TreeSpecie, error)
+	GetTreesByUserId(id []uint8) ([]Tree, error)
 }
 
 type TreeService interface {
 	CreateTree(tree createTreePayload, userId []uint8) error
 	GetSpecies() ([]TreeSpecie, error)
+	GetTreesByUser(userId []uint8) ([]Tree, error)
 }
 
 

@@ -21,7 +21,9 @@ func NewHandler(service TreeService) *Handler {
 func (h *Handler) RegisterRoutes(router *mux.Router, middleware *middlewares.Middleware) {
 
 	router.HandleFunc("", middleware.RequireAuthAndPermission([]string{"SENSE"}, false)(h.handleCreateTree)).Methods("POST")
+	router.HandleFunc("", middleware.RequireAuthAndPermission([]string{"SENSE"}, false)(h.handleGetTreesCurrentUser)).Methods("GET")
 	router.HandleFunc("/species", middleware.RequireAuthAndPermission([]string{"SENSE"}, false)(h.handleGetSpecies)).Methods("GET")
+
 
 }
 
@@ -55,6 +57,24 @@ func (h *Handler) handleCreateTree(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusCreated, map[string]string{
 		"message": "Tree created successfully",
 	})
+}
+
+func (h *Handler) handleGetTreesCurrentUser(w http.ResponseWriter, r *http.Request) {
+
+	userId, err := middlewares.GetUserIDFromContext(r.Context())
+	if err != nil {
+		utils.WriteError(w, http.StatusUnauthorized, errors.ErrJWTInvalidToken)
+		return
+	}
+
+	trees, err := h.service.GetTreesByUser(userId)
+
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, map[string]interface{}{"trees": trees,})
 }
 
 

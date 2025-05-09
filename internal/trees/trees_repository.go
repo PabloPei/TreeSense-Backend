@@ -66,13 +66,38 @@ func (s *SQLRepository) GetSpecies() ([]TreeSpecie, error) {
 	return treeSpecies, nil
 }
 
+func (s *SQLRepository) GetTreesByUserId(id []uint8) ([]Tree, error) {
+	rows, err := s.db.Query("SELECT * FROM treesense.\"tree\" WHERE created_by = $1", id)
+
+	if err != nil {
+		return nil, errors.ErrTreeScan(err.Error())
+	}
+
+	defer rows.Close()
+
+	var trees []Tree
+
+	for rows.Next() {
+		tree, err := scanRowIntoTree(rows)
+		if err != nil {
+			return nil, err 
+		}
+		trees = append(trees, *tree)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, errors.ErrTreeScan(err.Error())
+	}
+
+	return trees, nil
+}
 
 func (s *SQLRepository) GetTreeById(id []uint8) (*Tree, error) {
 	row := s.db.QueryRow("SELECT * FROM treesense.\"tree\" WHERE tree_id = $1", id)
 	return scanRowIntoTree(row)
 }
 
-func scanRowIntoTree(row *sql.Row) (*Tree, error) {
+func scanRowIntoTree(row scannable) (*Tree, error) {
 
 	tree := new(Tree)
 	err := row.Scan(

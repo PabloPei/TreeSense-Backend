@@ -52,3 +52,9 @@ func (s *Service) GetSpecies() ([]TreeSpecie, error) {
 	return s.repository.GetSpecies()
 
 }
+
+func (s *Service) GetTreesByUser(userId []uint8) ([]Tree, error) {
+
+	return s.repository.GetTreesByUserId(userId)
+
+}
