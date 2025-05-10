@@ -25,7 +25,8 @@ func (h *Handler) RegisterRoutes(router *mux.Router, middleware *middlewares.Mid
 	router.HandleFunc("/login", h.handleLogin).Methods("POST")
 	router.HandleFunc("/refresh-token", middleware.RequireAuthAndPermission([]string{}, true)(h.handleRefreshToken)).Methods("POST")
 	router.HandleFunc("/photo/{email}", middleware.RequireAuthAndPermission([]string{}, false)(h.handleUserPhoto)).Methods("POST", "PUT")
-	router.HandleFunc("/{email}", middleware.RequireAuthAndPermission([]string{"MANAGE"}, true) (h.handleGetUser)).Methods("GET")
+	router.HandleFunc("", middleware.RequireAuthAndPermission([]string{}, false) (h.handleGetCurrentUser)).Methods("GET")
+	router.HandleFunc("/{email}", middleware.RequireAuthAndPermission([]string{"MANAGE"}, false) (h.handleGetUser)).Methods("GET")
 }
 
 func (h *Handler) handleUserRegister(w http.ResponseWriter, r *http.Request) {
@@ -109,6 +110,23 @@ func (h *Handler) handleGetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userPublic, err := h.service.GetUserPublicByEmail(email)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, userPublic)
+}
+
+func (h *Handler) handleGetCurrentUser(w http.ResponseWriter, r *http.Request) {
+
+	userId, err := middlewares.GetUserIDFromContext(r.Context())
+	if err != nil {
+		utils.WriteError(w, http.StatusUnauthorized, errors.ErrJWTInvalidToken)
+		return
+	}
+
+	userPublic, err := h.service.GetUserPublicById(userId)
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return

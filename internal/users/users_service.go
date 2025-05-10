@@ -72,6 +72,25 @@ func (s *Service) GetUserPublicByEmail(email string) (*UserPublicPayload, error)
 		UserId:   u.UserId,
 		Email:    u.Email,
 		UserName: u.UserName,
+		LanguageCode: u.LanguageCode,
+		Photo: u.Photo,
+	}, nil
+}
+
+
+func (s *Service) GetUserPublicById(userId []uint8) (*UserPublicPayload, error) {
+
+	u, err := s.repository.GetUserById(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &UserPublicPayload{
+		UserId:   u.UserId,
+		Email:    u.Email,
+		UserName: u.UserName,
+		LanguageCode: u.LanguageCode,
+		Photo: u.Photo,
 	}, nil
 }
 
@@ -112,7 +131,7 @@ func (s *Service) UploadPhoto(payload UploadPhotoPayload, email string) error {
 		return errors.ErrUploadPhoto
 	}
 
-	return s.repository.UploadPhoto(payload.PhotoUrl, email)
+	return s.repository.UploadPhoto(payload.Photo, email)
 }
 
 // Aux Functions
