@@ -1,6 +1,6 @@
 package trees
 
-// TODO: El tree service tiene que trer el rout service para verificar que existan y que corresponda al usuario 
+// TODO: El tree service tiene que trer el rout service para verificar que existan y que corresponda al usuario
 import (
 	"fmt"
 
@@ -17,25 +17,25 @@ func NewService(repository TreeRepository) *Service {
 
 func (s *Service) CreateTree(payload createTreePayload, userId []uint8) error {
 
-	//TODO validar ruta 
+	//TODO validar ruta
 	_, err := s.repository.GetTreeStateById(payload.State)
 	if err != nil {
 		return errors.ErrTreeStateNotFound
 	}
 
-	_, err = s.repository.GetSpecieById(payload.Specie)
+	_, err = s.repository.GetSpeciesById(payload.Species)
 	if err != nil {
-		return errors.ErrTreeSpecieNotFound
+		return errors.ErrTreeSpeciesNotFound
 	}
-	
+
 	location := fmt.Sprintf("POINT(%f %f)", payload.Longitude, payload.Latitude)
 
 	tree := Tree{
 		//RouteId:     payload.RouteId,
-		Specie:      payload.Specie,
+		Species:     payload.Species,
 		State:       payload.State,
 		Location:    location,
-		Antique:     payload.Antique,
+		Age:         payload.Age,
 		Height:      payload.Height,
 		Diameter:    payload.Diameter,
 		PhotoUrl:    payload.PhotoUrl,
@@ -43,11 +43,10 @@ func (s *Service) CreateTree(payload createTreePayload, userId []uint8) error {
 		CreatedBy:   userId,
 	}
 
-
 	return s.repository.CreateTree(tree)
 }
 
-func (s *Service) GetSpecies() ([]TreeSpecie, error) {
+func (s *Service) GetSpecies() ([]TreeSpecies, error) {
 
 	return s.repository.GetSpecies()
 

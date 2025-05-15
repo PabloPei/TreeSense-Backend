@@ -6,38 +6,38 @@ import (
 )
 
 var (
-	ErrInvalidCredentials = errors.New("invalid email or password")
-	ErrJWTCreation        = errors.New("unable to create JWT token")
-	ErrJWTInvalidToken    = errors.New("error authenticating user: Token not valid")
-	ErrJWTTokenExpired    = errors.New("error authenticating user: JWT token expired")
-	ErrUploadPhoto        = errors.New("unable to upload photo")
-	ErrRoleAssigmentExist = errors.New("role assigment already exist")
-	ErrUserNotFound       = errors.New("user not found")
-	ErrTreeNotFound       = errors.New("tree not found")
-	ErrTreeSpecieNotFound = errors.New("tree specie not found")
-	ErrTreeStateNotFound  = errors.New("tree state not found")
-	ErrRoleNotFound       = errors.New("role not found")
-	ErrPermissionNotFound = errors.New("permission not found")
-	ErrRoleAssigmentNotExist = errors.New("role assigment not exist")
-	ErrCantDeleteRole     = func(err string) error {
-		return fmt.Errorf("can´t delete role assigment: %v", err)
+	ErrInvalidCredentials    = errors.New("invalid email or password")
+	ErrJWTCreation           = errors.New("unable to create JWT token")
+	ErrJWTInvalidToken       = errors.New("error authenticating user: Token not valid")
+	ErrJWTTokenExpired       = errors.New("error authenticating user: JWT token expired")
+	ErrUploadPhoto           = errors.New("unable to upload photo")
+	ErrRoleAssigmentExist    = errors.New("role assigment already exist")
+	ErrUserNotFound          = errors.New("user not found")
+	ErrTreeNotFound          = errors.New("tree not found")
+	ErrTreeSpeciesNotFound   = errors.New("tree species not found")
+	ErrTreeStateNotFound     = errors.New("tree state not found")
+	ErrRoleNotFound          = errors.New("role not found")
+	ErrPermissionNotFound    = errors.New("permission not found")
+	ErrRoleAssigmentNotExist = errors.New("role assigment doesn't exist")
+	ErrCantDeleteRole        = func(err string) error {
+		return fmt.Errorf("can't delete role assigment: %v", err)
 	}
-	ErrLogActivity     = func(err error) error {
-		return fmt.Errorf("can´t log activity: %v", err)
+	ErrLogActivity = func(err error) error {
+		return fmt.Errorf("can't log activity: %v", err)
 	}
-	ErrReadingPermission     = func(err string) error {
-		return fmt.Errorf("can´t read user permissions: %v", err)
+	ErrReadingPermission = func(err string) error {
+		return fmt.Errorf("can't read user permissions: %v", err)
 	}
-	ErrCantUploadRole     = func(err string) error {
-		return fmt.Errorf("can´t upload role info: %v", err)
+	ErrCantUploadRole = func(err string) error {
+		return fmt.Errorf("can't upload role info: %v", err)
 	}
-	ErrCantUploadTree     = func(err string) error {
-		return fmt.Errorf("can´t create tree: %v", err)
+	ErrCantUploadTree = func(err string) error {
+		return fmt.Errorf("can't create tree: %v", err)
 	}
-	ErrCantUploadUser     = func(err string) error {
-		return fmt.Errorf("can´t upload user info: %v", err)
+	ErrCantUploadUser = func(err string) error {
+		return fmt.Errorf("can't upload user info: %v", err)
 	}
-	ErrPermissionDenied   = func(permission string) error {
+	ErrPermissionDenied = func(permission string) error {
 		return fmt.Errorf("user do not have %v permissions", permission)
 	}
 	ErrInvalidaPayload = func(err string) error {
@@ -61,11 +61,11 @@ var (
 	ErrTreeScan = func(err string) error {
 		return fmt.Errorf("error scanning tree: %v", err)
 	}
-	ErrTreeSpecieScan = func(err string) error {
-		return fmt.Errorf("error scanning tree specie: %v", err)
+	ErrTreeSpeciesScan = func(err string) error {
+		return fmt.Errorf("error scanning tree species: %v", err)
 	}
 	ErrReadingSpecies = func(err string) error {
-		return fmt.Errorf("error reading tree specie: %v", err)
+		return fmt.Errorf("error reading tree species: %v", err)
 	}
 	ErrReadingRole = func(err string) error {
 		return fmt.Errorf("error reading role: %v", err)

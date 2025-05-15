@@ -26,12 +26,12 @@ func (h *Handler) RegisterRoutes(router *mux.Router, middleware *middlewares.Mid
 	router.HandleFunc("/all", middleware.RequireAuthAndPermission([]string{"MANAGE"}, false)(h.handleGetAllRoles)).Methods("GET")
 	router.HandleFunc("/{email}", middleware.RequireAuthAndPermission([]string{"MANAGE"}, false)(h.handleGetUserRoles)).Methods("GET")
 
-	/// Assigments /// 
+	/// Assigments ///
 	router.HandleFunc("/{email}", middleware.RequireAuthAndPermission([]string{}, false)(h.handleCreateRoleAssigment)).Methods("POST")
 	router.HandleFunc("/{email}", middleware.RequireAuthAndPermission([]string{}, false)(h.handleDeleteRoleAssigment)).Methods("DELETE")
 }
 
-/// Roles ///
+// / Roles ///
 func (h *Handler) handleCreateRole(w http.ResponseWriter, r *http.Request) {
 
 	var role CreateRolePayload
@@ -104,7 +104,7 @@ func (h *Handler) handleGetUserRoles(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, roles)
 }
 
-/// Assigments /// 
+/// Assigments ///
 
 func (h *Handler) handleCreateRoleAssigment(w http.ResponseWriter, r *http.Request) {
 
@@ -134,7 +134,6 @@ func (h *Handler) handleCreateRoleAssigment(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	
 	err = h.service.CreateRoleAssigment(roleAssigment, email, userId)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
@@ -142,10 +141,9 @@ func (h *Handler) handleCreateRoleAssigment(w http.ResponseWriter, r *http.Reque
 	}
 
 	utils.WriteJSON(w, http.StatusCreated, map[string]string{
-		"message": "Role successfully assigned",
+		"message": "Role assigned successfully",
 	})
 }
-
 
 func (h *Handler) handleDeleteRoleAssigment(w http.ResponseWriter, r *http.Request) {
 
@@ -168,7 +166,6 @@ func (h *Handler) handleDeleteRoleAssigment(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	
 	err := h.service.DeleteRoleAssigment(roleAssigment, email)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)

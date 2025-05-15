@@ -25,7 +25,7 @@ func (h *Handler) RegisterRoutes(router *mux.Router, middleware *middlewares.Mid
 	router.HandleFunc("/login", h.handleLogin).Methods("POST")
 	router.HandleFunc("/refresh-token", middleware.RequireAuthAndPermission([]string{}, true)(h.handleRefreshToken)).Methods("POST")
 	router.HandleFunc("/photo/{email}", middleware.RequireAuthAndPermission([]string{}, false)(h.handleUserPhoto)).Methods("POST", "PUT")
-	router.HandleFunc("/{email}", middleware.RequireAuthAndPermission([]string{"MANAGE"}, true) (h.handleGetUser)).Methods("GET")
+	router.HandleFunc("/{email}", middleware.RequireAuthAndPermission([]string{"MANAGE"}, false)(h.handleGetUser)).Methods("GET")
 }
 
 func (h *Handler) handleUserRegister(w http.ResponseWriter, r *http.Request) {

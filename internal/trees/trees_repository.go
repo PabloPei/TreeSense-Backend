@@ -21,8 +21,8 @@ type scannable interface {
 
 func (s *SQLRepository) CreateTree(tree Tree) error {
 	_, err := s.db.Exec(
-		"INSERT INTO treesense.\"tree\" (specie, state, antique, height, diameter, photo_url, description, location, created_by) VALUES ($1, $2, $3, $4, $5, $6, $7, ST_GeomFromText($8, 4326), $9)",
-		tree.Specie, tree.State, tree.Antique, tree.Height, tree.Diameter, tree.PhotoUrl, tree.Description, tree.Location, tree.CreatedBy,
+		"INSERT INTO treesense.\"tree\" (species, state, age, height, diameter, photo_url, description, location, created_by) VALUES ($1, $2, $3, $4, $5, $6, $7, ST_GeomFromText($8, 4326), $9)",
+		tree.Species, tree.State, tree.Age, tree.Height, tree.Diameter, tree.PhotoUrl, tree.Description, tree.Location, tree.CreatedBy,
 	)
 	if err != nil {
 		return errors.ErrCantUploadTree(err.Error())
@@ -32,35 +32,35 @@ func (s *SQLRepository) CreateTree(tree Tree) error {
 }
 
 func (s *SQLRepository) GetTreeStateById(stateId string) (*TreeState, error) {
-	row :=	s.db.QueryRow("SELECT * FROM treesense.\"tree_state\" where tree_state_id = $1", stateId)
+	row := s.db.QueryRow("SELECT * FROM treesense.\"tree_state\" where tree_state_id = $1", stateId)
 	return scanRowIntoTreeState(row)
 }
 
-func (s *SQLRepository) GetSpecieById(stateId string) (*TreeSpecie, error) {
-	row :=	s.db.QueryRow("SELECT * FROM treesense.\"tree_specie\" where tree_specie_id = $1", stateId)
-	return scanRowIntoTreeSpecie(row)
+func (s *SQLRepository) GetSpeciesById(stateId string) (*TreeSpecies, error) {
+	row := s.db.QueryRow("SELECT * FROM treesense.\"tree_species\" where tree_species_id = $1", stateId)
+	return scanRowIntoTreeSpecies(row)
 }
 
-func (s *SQLRepository) GetSpecies() ([]TreeSpecie, error) {
+func (s *SQLRepository) GetSpecies() ([]TreeSpecies, error) {
 
-	rows, err := s.db.Query("SELECT * FROM treesense.\"tree_specie\"")
+	rows, err := s.db.Query("SELECT * FROM treesense.\"tree_species\"")
 	if err != nil {
 		return nil, errors.ErrReadingSpecies(err.Error())
 	}
 	defer rows.Close()
 
-	var treeSpecies []TreeSpecie
+	var treeSpecies []TreeSpecies
 
 	for rows.Next() {
-		specie, err := scanRowIntoTreeSpecie(rows)
+		species, err := scanRowIntoTreeSpecies(rows)
 		if err != nil {
-			return nil, err 
+			return nil, err
 		}
-		treeSpecies = append(treeSpecies, *specie)
+		treeSpecies = append(treeSpecies, *species)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, errors.ErrTreeSpecieScan(err.Error())
+		return nil, errors.ErrTreeSpeciesScan(err.Error())
 	}
 
 	return treeSpecies, nil
@@ -80,7 +80,7 @@ func (s *SQLRepository) GetTreesByUserId(id []uint8) ([]Tree, error) {
 	for rows.Next() {
 		tree, err := scanRowIntoTree(rows)
 		if err != nil {
-			return nil, err 
+			return nil, err
 		}
 		trees = append(trees, *tree)
 	}
@@ -103,10 +103,10 @@ func scanRowIntoTree(row scannable) (*Tree, error) {
 	err := row.Scan(
 		&tree.TreeId,
 		&tree.RouteId,
-		&tree.Specie,	
+		&tree.Species,
 		&tree.State,
 		&tree.Location,
-		&tree.Antique,
+		&tree.Age,
 		&tree.Height,
 		&tree.Diameter,
 		&tree.PhotoUrl,
@@ -143,19 +143,19 @@ func scanRowIntoTreeState(row *sql.Row) (*TreeState, error) {
 	return treeState, nil
 }
 
-func scanRowIntoTreeSpecie(row scannable) (*TreeSpecie, error) {
+func scanRowIntoTreeSpecies(row scannable) (*TreeSpecies, error) {
 
-	treeSpecie := new(TreeSpecie)
+	treeSpecies := new(TreeSpecies)
 	err := row.Scan(
-		&treeSpecie.TreeSpecieId,
-		&treeSpecie.Description,
+		&treeSpecies.TreeSpeciesId,
+		&treeSpecies.Description,
 	)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, errors.ErrTreeSpecieNotFound
+			return nil, errors.ErrTreeSpeciesNotFound
 		}
 		return nil, errors.ErrTreeScan(err.Error())
 	}
-	return treeSpecie, nil
+	return treeSpecies, nil
 }

@@ -20,10 +20,9 @@ func NewHandler(service TreeService) *Handler {
 
 func (h *Handler) RegisterRoutes(router *mux.Router, middleware *middlewares.Middleware) {
 
-	router.HandleFunc("", middleware.RequireAuthAndPermission([]string{"SENSE"}, false)(h.handleCreateTree)).Methods("POST")
-	router.HandleFunc("", middleware.RequireAuthAndPermission([]string{"SENSE"}, false)(h.handleGetTreesCurrentUser)).Methods("GET")
-	router.HandleFunc("/species", middleware.RequireAuthAndPermission([]string{"SENSE"}, false)(h.handleGetSpecies)).Methods("GET")
-
+	router.HandleFunc("", middleware.RequireAuthAndPermission([]string{"SURVEY"}, false)(h.handleCreateTree)).Methods("POST")
+	router.HandleFunc("", middleware.RequireAuthAndPermission([]string{"SURVEY"}, false)(h.handleGetTreesCurrentUser)).Methods("GET")
+	router.HandleFunc("/species", middleware.RequireAuthAndPermission([]string{"SURVEY"}, false)(h.handleGetSpecies)).Methods("GET")
 
 }
 
@@ -35,13 +34,12 @@ func (h *Handler) handleCreateTree(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 	var tree createTreePayload
 	if err := utils.ParseJSON(r, &tree); err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
-	
+
 	if err := utils.Validate.Struct(tree); err != nil {
 		validationErrors := err.(validator.ValidationErrors)
 		utils.WriteError(w, http.StatusBadRequest, errors.ErrInvalidaPayload(validationErrors.Error()))
@@ -74,12 +72,10 @@ func (h *Handler) handleGetTreesCurrentUser(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, map[string]interface{}{"trees": trees,})
+	utils.WriteJSON(w, http.StatusOK, map[string]interface{}{"trees": trees})
 }
 
-
 func (h *Handler) handleGetSpecies(w http.ResponseWriter, r *http.Request) {
-
 
 	species, err := h.service.GetSpecies()
 
