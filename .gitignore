@@ -9,6 +9,7 @@
 *.dll
 *.so
 *.dylib
+main
 
 # Archivos de build de Go
 *.a
