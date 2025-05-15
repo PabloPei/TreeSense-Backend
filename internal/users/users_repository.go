@@ -2,7 +2,7 @@ package users
 
 import (
 	"database/sql"
-
+	"encoding/base64"
 	"github.com/PabloPei/TreeSense-Backend/internal/errors"
 )
 
@@ -27,11 +27,11 @@ func (s *SQLRepository) CreateUser(user User) error {
 	return nil
 }
 
-func (s *SQLRepository) UploadPhoto(photoUrl string, email string) error {
+func (s *SQLRepository) UploadPhoto(photo string, email string) error {
 
 	_, err := s.db.Exec(
-		"UPDATE auth.\"user\" SET photo_url = $1 WHERE email = $2",
-		photoUrl, email,
+		"UPDATE auth.\"user\" SET photo = $1 WHERE email = $2",
+		photo, email,
 	)
 
 	if err != nil {
@@ -52,14 +52,16 @@ func (s *SQLRepository) GetUserById(id []uint8) (*User, error) {
 }
 
 func scanRowIntoUser(row *sql.Row) (*User, error) {
-
 	user := new(User)
+
+	var photoBytes []byte 
+
 	err := row.Scan(
 		&user.UserId,
 		&user.UserName,
 		&user.Email,
 		&user.Password,
-		&user.PhotoUrl,
+		&photoBytes, 
 		&user.LanguageCode,
 		&user.CreatedAt,
 		&user.UpdatedAt,
@@ -71,5 +73,11 @@ func scanRowIntoUser(row *sql.Row) (*User, error) {
 		}
 		return nil, errors.ErrUserScan(err.Error())
 	}
+
+	if len(photoBytes) > 0 {
+		base64Str := base64.StdEncoding.EncodeToString(photoBytes)
+		user.Photo = base64Str 
+	}
+
 	return user, nil
 }
