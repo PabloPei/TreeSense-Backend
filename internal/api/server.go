@@ -7,12 +7,12 @@ import (
 	"net/http"
 
 	"github.com/PabloPei/TreeSense-Backend/conf"
-	"github.com/PabloPei/TreeSense-Backend/internal/middlewares"
-	"github.com/PabloPei/TreeSense-Backend/internal/users"
-	"github.com/PabloPei/TreeSense-Backend/internal/roles"
-	"github.com/PabloPei/TreeSense-Backend/internal/permission"
 	"github.com/PabloPei/TreeSense-Backend/internal/audit"
+	"github.com/PabloPei/TreeSense-Backend/internal/middlewares"
+	"github.com/PabloPei/TreeSense-Backend/internal/permission"
+	"github.com/PabloPei/TreeSense-Backend/internal/roles"
 	"github.com/PabloPei/TreeSense-Backend/internal/trees"
+	"github.com/PabloPei/TreeSense-Backend/internal/users"
 	"github.com/gorilla/mux"
 )
 
@@ -24,14 +24,20 @@ type APIServer struct {
 func NewAPIServer(cfg conf.ApiServerConfig, db *sql.DB) *APIServer {
 	return &APIServer{
 		addr: fmt.Sprintf("%s:%s", cfg.PublicHost, cfg.Port),
-		db:   db, 
+		db:   db,
 	}
 }
 
 func (s *APIServer) Run() error {
 	router := mux.NewRouter()
+	router.Methods(http.MethodOptions).Handler(middlewares.CORSMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	}))) //TODO: revisar este cambio. Hace que las rutas con OPTIONS devuelvan 204 en vez de 404 y permitan que se ejecute la ruta que de verdad quiero.
+	// El navegador envia una preflight request (OPTIONS...) como parte del CORS. Como no encontraba la ruta, bloqueaba la request principal.
+	// Esto registra una ruta OPTIONS universal para que las OPTIONS.... den 204 y luego se ejecute la request principal.
 
 	// Global middlewares
+	router.Use(middlewares.CORSMiddleware) //TODO: Chequear si dejar en prod
 	router.Use(middlewares.LoggingMiddleware)
 	router.Use(middlewares.RecoveryMiddleware)
 	api := router.PathPrefix("/api/v1").Subrouter()
@@ -62,7 +68,7 @@ func (s *APIServer) Run() error {
 	treeHandler := trees.NewHandler(treeService)
 	treeHandler.RegisterRoutes(treeRouter, authMiddleware)
 
-	// with audit 
+	// with audit
 	userRouter := api.PathPrefix("/user").Subrouter()
 	userHandler := users.NewHandler(userService)
 	userHandler.RegisterRoutes(userRouter, authMiddleware)
