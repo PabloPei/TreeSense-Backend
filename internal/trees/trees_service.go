@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/PabloPei/TreeSense-Backend/internal/errors"
+	"github.com/PabloPei/TreeSense-Backend/utils"
 )
 
 type Service struct {
@@ -61,6 +62,12 @@ func (s *Service) GetTreesByUser(userId []uint8) ([]Tree, error) {
 
 	if trees == nil {
 		trees = []Tree{}
+	}
+
+	// Convert timestamps to Argentina's time zone
+	for i := range trees {
+		trees[i].CreatedAt = utils.ConvertUTCToArgentina(trees[i].CreatedAt)
+		trees[i].UpdatedAt = utils.ConvertUTCToArgentina(trees[i].UpdatedAt)
 	}
 
 	return trees, nil
